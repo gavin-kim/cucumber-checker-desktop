@@ -1,12 +1,13 @@
 package controller
 
+import javafx.beans.property.SimpleListProperty
+import javafx.collections.ObservableList
+import model.Build
 import model.CucumberReport
 import model.Job
 import mu.KotlinLogging
 import service.CucumberReportService
-import tornadofx.Controller
-import tornadofx.getProperty
-import tornadofx.property
+import tornadofx.*
 
 class SearchViewController: Controller() {
 
@@ -14,14 +15,25 @@ class SearchViewController: Controller() {
 
     private val cucumberReportService by lazy { CucumberReportService() }
 
-    private var selectedJob: Job by property(Job.MANUAL_ORACLE_JOB)
+    private var selectedJob: Job by property<Job>()
     fun selectedJobProperty() = getProperty(SearchViewController::selectedJob)
 
-    private var buildId: Int by property<Int>()
-    fun buildIdProperty() = getProperty(SearchViewController::buildId)
+    private var selectedBuild: Build by property<Build>()
+    fun selectedBuildProperty() = getProperty(SearchViewController::selectedBuild)
+
+    private var buildList: ObservableList<Build> by listProperty(mutableListOf<Build>().asObservable())
+    fun buildListProperty() = SimpleListProperty<Build>(buildList)
 
     fun getCucumberReport(): CucumberReport {
-        val report = cucumberReportService.getReport(selectedJob, buildId)
-        return report
+        return cucumberReportService.getReport(selectedJob, selectedBuild)
+    }
+
+    fun updateBuilds() {
+        val builds = cucumberReportService.getBuilds(selectedJob)
+        buildList.setAll(builds)
+    }
+
+    fun getBuilds(): List<Build> {
+        return cucumberReportService.getBuilds(selectedJob)
     }
 }

@@ -14,24 +14,72 @@ class CucumberReportService {
 
     val logger = KotlinLogging.logger {}
 
-    fun getReport(job: Job, buildId: Int): CucumberReport {
-        val buildUrl = "$CUCUMBER_HOST/job/${job.jobName}/$buildId"
+    fun getBuilds(job: Job): List<Build> {
+        val rssUrl = "$CUCUMBER_HOST/job/${job.jobName}/rssAll"
+
+        val doc = Jsoup.connect(rssUrl).maxBodySize(0).get()
+
+        return doc.select("feed > entry").map {
+            val title = it.select("title").text()
+
+            val id = it.select("id").text().substringAfterLast(":").toInt()
+            val name = title.substringAfter(" ").substringBeforeLast("(").trim()
+
+            val link = it.select("link").attr("href")
+
+            val statusMessage = title.substringAfterLast("(").substringBefore(")")
+            val status = getBuildStatus(statusMessage)
+
+            Build(id, name, link, status)
+        }
+    }
+
+    private fun getBuildStatus(message: String): Build.Status {
+        return when {
+            message.contains("broken") -> Build.Status.BROKEN
+            message.contains("back to normal") or message.contains("stable") -> Build.Status.STABLE
+            message.contains("aborted") -> Build.Status.ABORTED
+            else -> Build.Status.UNSTABLE
+        }
+    }
+
+    fun investigateStatus(job: Job) {
+        val rssUrl = "$CUCUMBER_HOST/job/${job.jobName}/rssAll"
+
+        val doc = Jsoup.connect(rssUrl).maxBodySize(0).get()
+
+        val messageToStatus = doc.select("feed > entry").map {
+            val title = it.select("title").text()// status, title
+            val statusMessage = title.substringAfterLast("(").substringBefore(")")
+
+            val link = it.select("link").attr("href")
+            val buildDoc = Jsoup.connect(link).maxBodySize(0).get()
+            val status = buildDoc.body().select("h1.build-caption > img").attr("tooltip")
+
+            statusMessage to status
+        }
+
+        messageToStatus.forEach {
+            println(it)
+        }
+    }
+
+    fun getReport(job: Job, build: Build): CucumberReport {
+        val buildUrl = "$CUCUMBER_HOST/job/${job.jobName}/${build.id}"
 
         val failedScenarioNamesByFeatureName = getFailedScenarioNamesByFeatureName(buildUrl)
         val reportHtmlByFeature = getReportHtmlByFeature(buildUrl)
 
-        val failedScenariosByFeature = mutableMapOf<Feature, List<Scenario>>()
+        val failedFeatures = mutableListOf<Feature>()
 
         failedScenarioNamesByFeatureName.forEach { (featureName, failedScenarioNames) ->
             if (reportHtmlByFeature.containsKey(featureName)) {
                 val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS/${reportHtmlByFeature[featureName]}"
-                val failedScenarios = getFailedScenarios(reportUrl, featureName, failedScenarioNames)
-
-                failedScenariosByFeature[failedScenarios.first().feature] = failedScenarios
+                failedFeatures.add(getFailedFeature(reportUrl, featureName, failedScenarioNames))
             }
         }
 
-        return CucumberReport(job, buildId, failedScenariosByFeature)
+        return CucumberReport(job, build, failedFeatures)
     }
 
     private fun getFailedScenarioNamesByFeatureName(buildUrl: String): Map<String, List<String>> {
@@ -66,12 +114,9 @@ class CucumberReportService {
             }.toMap()
     }
 
-    private fun getFailedScenarios(reportUrl: String, featureName: String, failedScenarioNames: Collection<String>): List<Scenario> {
+    private fun getFailedFeature(reportUrl: String, featureName: String, failedScenarioNames: Collection<String>): Feature {
 
         val doc = Jsoup.connect(reportUrl).maxBodySize(0).get()
-
-        val featureTags = doc.body().select("div.feature > div.tags > a").eachText()
-        val feature = Feature(featureName, featureTags.toSet())
 
         val failedScenarioNameSet = failedScenarioNames.toSet()
         val failedScenarios = mutableListOf<Scenario>()
@@ -97,44 +142,15 @@ class CucumberReportService {
                 val failedStep = failedStepElement.select("span.name").text()
                 val failedReason = failedStepElement.next("pre").text()
 
-                val scenario = Scenario(feature, scenarioTags.toSet(), scenarioName, failedStep, failedReason)
+                val scenario = Scenario(scenarioTags.toSet(), scenarioName, failedStep, failedReason)
 
                 failedScenarios.add(scenario)
             }
         }
-        return failedScenarios
-    }
 
-    fun getFailedAutoTriggeredBuilds(job: Job): List<AutoTriggerBuild> {
-        return TODO()
-    }
+        val featureTags = doc.body().select("div.feature > div.tags > a").eachText()
 
-    private fun getFailedAutoTriggeredBuildIdsAfterLastSuccess(autoTriggeredJobUrl: String): List<Int>  {
-        val doc = Jsoup.connect("$autoTriggeredJobUrl/rssFailed").maxBodySize(0).get()
-        val lastSuccessfulBuildId = getLastSuccessfulBuildId(autoTriggeredJobUrl)
-
-        return doc.select("entry")
-            .map { it.select("id").text().substringAfterLast(":").toInt() }
-            .filter { it > lastSuccessfulBuildId }
-    }
-
-    private fun getFailedAutoTriggeredBuildChanges(autoTriggeredJobUrl: String, buildId: Int): List<Change> {
-        val doc = Jsoup.connect("$autoTriggeredJobUrl/$buildId/api/xml").maxBodySize(0).get()
-
-        return doc.select("changeSet > item").map {
-            Change(
-                it.select("affectedPath").eachText(),
-                it.select("user").text(),
-                it.select("revision").text().toLong(),
-                Date(it.select("timestamp").text().toLong()),
-                it.select("msg").text()
-            )
-        }
-    }
-
-    private fun getLastSuccessfulBuildId(autoTriggeredJobUrl: String): Int {
-        val doc = Jsoup.connect("$autoTriggeredJobUrl/lastSuccessfulBuild/api/xml").maxBodySize(0).get()
-        return doc.selectFirst("workflowRun > id").text().toInt()
+        return Feature(featureName, featureTags.toSet(), failedScenarios)
     }
 }
 

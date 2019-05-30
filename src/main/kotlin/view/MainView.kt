@@ -2,6 +2,7 @@ package view
 
 import controller.ReportViewController
 import controller.SearchViewController
+import model.Feature
 import model.Job
 import model.Scenario
 import mu.KotlinLogging
@@ -15,30 +16,45 @@ class MainView: View() {
 
     override val root = borderpane {
         left = vbox {
-            combobox(property = searchViewController.selectedJobProperty(), values = Job.values().toList())
             hbox {
-                label("Job Id")
-                textfield(property = searchViewController.buildIdProperty())
+                label("Job")
+                combobox(property = searchViewController.selectedJobProperty(), values = Job.values().toList())
+                    .setOnAction {
+                        searchViewController.updateBuilds()
+                    }
+            }
+            hbox {
+                label("Build")
+                combobox(property = searchViewController.selectedBuildProperty(), values = searchViewController.buildListProperty())
             }
             button("search") {
                 useMaxWidth = true
 
                 action {
+                    val job = searchViewController.selectedJobProperty().value
+                    val build = searchViewController.selectedBuildProperty().value
+
                     runAsync {
-                        searchViewController.getCucumberReport()
-                    } success {
-                        logger.debug { "success: $it" }
-                    } fail {
-                        logger.debug { "success: $it" }
-                    } finally {
-                        logger.debug { "finally" }
+                        reportViewController.loadReport(job, build)
                     }
                 }
             }
         }
 
-        center = treetableview<Scenario> {
+        center = tableview(reportViewController.failureListProperty()) {
+            readonlyColumn("Feature", Feature::name)
+            readonlyColumn("Tags", Feature::tags)
 
+            rowExpander(expandOnDoubleClick = true) {
+                paddingLeft = expanderColumn.width
+
+                tableview(it.failedScenarios.asObservable()) {
+                    readonlyColumn("Scenario", Scenario::name)
+                    readonlyColumn("Tags", Scenario::tags )
+                    readonlyColumn("Failed Step", Scenario::failedStep)
+                    readonlyColumn("Failed Reason", Scenario::failedReason)
+                }
+            }
         }
     }
 }
