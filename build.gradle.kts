@@ -17,6 +17,8 @@ dependencies {
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("org.tmatesoft.svnkit:svnkit:1.9.3")
     implementation("no.tornado:tornadofx:1.7.19")
+    implementation("io.github.microutils:kotlin-logging:1.6.24")
+    implementation("org.slf4j:slf4j-simple:1.7.26")
 
     // Use JUnit test framework
     testImplementation("junit:junit:4.12")
@@ -33,5 +35,18 @@ java {
 tasks.withType<KotlinCompile>().all {
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+}
+
+val prop1: String by project
+val prop2: String by project
+val prop3: String by project
+
+tasks.register("printProps") {
+    doLast {
+        println(prop1)
+        println(prop2)
+        println(prop3)
+        println(System.getProperty("system"))
     }
 }

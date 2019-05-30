@@ -1,5 +1,6 @@
 package service
 import model.*
+import mu.KotlinLogging
 import org.apache.http.HttpStatus
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -10,6 +11,8 @@ private const val CUCUMBER_HTML_REPORTS = "cucumber-html-reports"
 private const val OVERVIEW_FEATURES = "overview-features.html"
 
 class CucumberReportService {
+
+    val logger = KotlinLogging.logger {}
 
     fun getReport(job: Job, buildId: Int): CucumberReport {
         val buildUrl = "$CUCUMBER_HOST/job/${job.jobName}/$buildId"
