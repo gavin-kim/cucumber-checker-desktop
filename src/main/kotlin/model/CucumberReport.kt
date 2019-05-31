@@ -1,7 +1,5 @@
 package model
 
-import java.util.*
-
 data class CucumberReport(
     val job: Job,
     val build: Build,

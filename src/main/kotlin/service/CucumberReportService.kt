@@ -1,16 +1,16 @@
 package service
+
 import model.*
 import mu.KotlinLogging
 import org.apache.http.HttpStatus
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import java.util.*
+import tornadofx.Controller
 
 private const val CUCUMBER_HOST = "http://wfm-ci.infor.com:8080"
 private const val CUCUMBER_HTML_REPORTS = "cucumber-html-reports"
 private const val OVERVIEW_FEATURES = "overview-features.html"
 
-class CucumberReportService {
+class CucumberReportService: Controller() {
 
     val logger = KotlinLogging.logger {}
 
