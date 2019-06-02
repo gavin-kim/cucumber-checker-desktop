@@ -1,10 +1,9 @@
-package view
+package component.main
 
-import view.reportView.ReportViewModel
 import mu.KotlinLogging
 import tornadofx.*
-import view.buildSearchView.BuildSearchView
-import view.reportView.ReportView
+import component.buildSearch.BuildSearchView
+import component.report.ReportView
 
 class MainView: View() {
 
@@ -14,6 +13,7 @@ class MainView: View() {
     private val reportView: ReportView by inject()
 
     override val root = borderpane {
+        this.
 
         left {
             add(buildSearchView)

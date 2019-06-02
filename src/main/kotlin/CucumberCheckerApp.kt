@@ -1,4 +1,4 @@
 import tornadofx.*
-import view.MainView
+import component.main.MainView
 
 class CucumberCheckerApp: App(MainView::class)

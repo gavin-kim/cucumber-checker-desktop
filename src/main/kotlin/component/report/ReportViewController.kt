@@ -1,4 +1,4 @@
-package view.reportView
+package component.report
 
 import event.DispatchReportEvent
 import javafx.beans.property.SimpleListProperty
@@ -7,7 +7,7 @@ import model.Feature
 
 import tornadofx.*
 
-class ReportViewModel: Controller() {
+class ReportViewController: Controller() {
 
     init {
         subscribe<DispatchReportEvent> {
@@ -16,5 +16,5 @@ class ReportViewModel: Controller() {
     }
 
     private var failureList: ObservableList<Feature> by listProperty(mutableListOf<Feature>().asObservable())
-    fun failureListProperty() = SimpleListProperty(failureList)
+    val failureListProperty = SimpleListProperty(failureList)
 }

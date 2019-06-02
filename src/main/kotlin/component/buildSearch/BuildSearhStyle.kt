@@ -1,6 +1,5 @@
-package view.buildSearchView
+package component.buildSearch
 
-import tornadofx.CssRule
 import tornadofx.Stylesheet
 import tornadofx.cssclass
 
@@ -14,7 +13,6 @@ class BuildSearhStyle: Stylesheet() {
     init {
         buildListView {
             cell {
-                and(CssRule)
                 and(".broken") {
 
                 }

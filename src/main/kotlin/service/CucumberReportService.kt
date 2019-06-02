@@ -23,15 +23,29 @@ class CucumberReportService: Controller() {
             val title = it.select("title").text()
 
             val id = it.select("id").text().substringAfterLast(":").toInt()
-            val name = title.substringAfter(" ").substringBeforeLast("(").trim()
-
+            val (name, statusMessage) = getNameStatusMessagePair(title.replace(job.jobName, ""))
             val link = it.select("link").attr("href")
 
-            val statusMessage = title.substringAfterLast("(").substringBefore(")")
-            val status = getBuildStatus(statusMessage)
-
-            Build(id, name, link, status)
+            Build(id, name, link, getBuildStatus(statusMessage))
         }
+    }
+
+    private fun getNameStatusMessagePair(title: String): Pair<String, String> {
+
+        var countLeft = 0
+        var countRight = 0
+
+        for (i in title.length - 1 downTo 0) {
+            when (title[i]) {
+                '(' -> countLeft++
+                ')' -> countRight++
+            }
+
+            if (countRight > 0 && countLeft == countRight) {
+                return title.substring(0, i).trim() to title.substring(i)
+            }
+        }
+        return title.trim() to ""
     }
 
     private fun getBuildStatus(message: String): Build.Status {
