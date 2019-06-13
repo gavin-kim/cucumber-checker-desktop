@@ -1,4 +1,4 @@
-package component.report
+package component.reportTable
 
 import event.DispatchReportEvent
 import javafx.beans.property.SimpleListProperty
@@ -7,7 +7,7 @@ import model.Feature
 
 import tornadofx.*
 
-class ReportViewController: Controller() {
+class ReportTableController: Controller() {
 
     init {
         subscribe<DispatchReportEvent> {

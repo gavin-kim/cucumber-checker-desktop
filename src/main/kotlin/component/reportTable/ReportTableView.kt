@@ -1,12 +1,12 @@
-package component.report
+package component.reportTable
 
 import model.Feature
 import model.Scenario
 import tornadofx.*
 
-class ReportView: View("ReportView") {
+class ReportTableView: View("ReportTableView") {
 
-    private val controller: ReportViewController by inject()
+    private val controller: ReportTableController by inject()
 
     override val root = tableview(controller.failureListProperty) {
         readonlyColumn("Feature", Feature::name)

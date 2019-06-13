@@ -3,7 +3,7 @@ package component.buildSearch
 import tornadofx.Stylesheet
 import tornadofx.cssclass
 
-class BuildSearhStyle: Stylesheet() {
+class BuildSearchStyle: Stylesheet() {
 
     companion object {
 

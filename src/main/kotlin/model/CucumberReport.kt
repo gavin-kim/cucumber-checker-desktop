@@ -1,5 +1,51 @@
 package model
 
+enum class Part {
+    BEFORE_HOOKS,
+    AFTER_HOOKS,
+    STEPS,
+    BACKGROUND
+}
+
+enum class Result(val cssClass: String) {
+    PASSED("passed"),
+    FAILED("failed"),
+    UNDEFINED("undefined"),
+    SKIPPED("skipped"),
+    UNKNOWN("")
+}
+
+data class Hook(
+    val type: Type,
+    val name: String,
+    val duration: String,
+    val result: Result,
+    val message: String? = null
+) {
+    enum class Type(val text: String) {
+        BEFORE("Before"),
+        AFTER("After"),
+        UNKNOWN("")
+    }
+}
+
+data class Step(
+    val type: Type,
+    val name: String,
+    val duration: String,
+    val result: Result,
+    val messages: List<String>,
+    val arguments: List<List<String>>
+) {
+    enum class Type(val text: String) {
+        GIVEN("Given"),
+        AND("And"),
+        WHEN("When"),
+        THEN("Then"),
+        UNKNOWN("")
+    }
+}
+
 data class CucumberReport(
     val job: Job,
     val build: Build,
@@ -9,14 +55,16 @@ data class CucumberReport(
 data class Feature(
     val name: String,
     val tags: Set<String>,
-    val failedScenarios: List<Scenario>
+    val failedScenarios: List<Scenario>,
+    val backgroundSteps: List<Step>
 )
 
 data class Scenario(
     val tags: Set<String>,
     val name: String,
-    val failedStep: String,
-    val failedReason: String
+    val hooks: List<Hook>,
+    val steps: List<Step>,
+    val screenShotLinks: List<String>
 )
 
 data class Build(

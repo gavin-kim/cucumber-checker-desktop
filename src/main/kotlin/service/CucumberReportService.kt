@@ -4,11 +4,14 @@ import model.*
 import mu.KotlinLogging
 import org.apache.http.HttpStatus
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import tornadofx.Controller
 
 private const val CUCUMBER_HOST = "http://wfm-ci.infor.com:8080"
 private const val CUCUMBER_HTML_REPORTS = "cucumber-html-reports"
 private const val OVERVIEW_FEATURES = "overview-features.html"
+private const val SCENARIO = "Scenario"
+private const val BACKGROUND = "Background"
 
 class CucumberReportService: Controller() {
 
@@ -89,7 +92,8 @@ class CucumberReportService: Controller() {
         failedScenarioNamesByFeatureName.forEach { (featureName, failedScenarioNames) ->
             if (reportHtmlByFeature.containsKey(featureName)) {
                 val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS/${reportHtmlByFeature[featureName]}"
-                failedFeatures.add(getFailedFeature(reportUrl, featureName, failedScenarioNames))
+                val failedFeature = getFailedFeature(reportUrl, featureName, failedScenarioNames)
+                failedFeatures.add(failedFeature)
             }
         }
 
@@ -132,39 +136,122 @@ class CucumberReportService: Controller() {
 
         val doc = Jsoup.connect(reportUrl).maxBodySize(0).get()
 
+        val elements = doc.body().select("div.feature > div.elements > div.element")
+        val elementsByKeyword = groupElementsByKeyword(elements)
+
+        val featureTags = doc.body().select("div.feature > div.tags > a").eachText()
+
+        val backgroundSteps =
+            if (elementsByKeyword[BACKGROUND] == null) emptyList()
+            else getSteps(elementsByKeyword[BACKGROUND]!!.first())
+
+        val failedScenarios =
+            if (elementsByKeyword[SCENARIO] == null) emptyList()
+            else getFailedScenarios(elementsByKeyword[SCENARIO]!!, failedScenarioNames)
+
+        return Feature(featureName, featureTags.toSet(), failedScenarios, backgroundSteps)
+    }
+
+    private fun groupElementsByKeyword(elements: List<Element>): Map<String, List<Element>> {
+        return elements.groupBy { element ->
+            element.select("span.collapsable-control > div.brief > span.keyword").text().trim()
+        }
+    }
+
+    private fun getFailedScenarios(elements: List<Element>, failedScenarioNames: Collection<String>): List<Scenario> {
         val failedScenarioNameSet = failedScenarioNames.toSet()
         val failedScenarios = mutableListOf<Scenario>()
 
-        val elements = doc.body().select("div.feature > div.elements > div.element")
-
-        val hasBackground = elements
-            .select("span.collapsable-control > div.brief > span.keyword:contains('Background')").isNotEmpty()
-
-        elements.filter { element ->
-            element.select("span.collapsable-control > div.brief > span.keyword").text().startsWith("Scenario")
-        }.forEach { element ->
+        elements.forEach { element ->
             val scenarioName = element.selectFirst("span.name").text()
 
             if (failedScenarioNameSet.contains(scenarioName)) {
                 val scenarioTags = element.select("div.tags > a").eachText()
 
-                var failedStepElement = element.select("div.step > div.brief.failed, div.hook > div.brief.failed")
-                if (failedStepElement == null && hasBackground) {
-                    failedStepElement = element.nextElementSibling().select("div.step > div.brief.failed")
-                }
-                //TODO: Scenario fail or Step failed or Hook failed( can be many)
-                val failedStep = failedStepElement.select("span.name").text()
-                val failedReason = failedStepElement.next("pre").text()
+                val hooks = getHooks(element)
+                val steps = getSteps(element)
+                val screenShotLinks = getScreenShotLinks(element)
 
-                val scenario = Scenario(scenarioTags.toSet(), scenarioName, failedStep, failedReason)
+                val scenario = Scenario(scenarioTags.toSet(), scenarioName, hooks, steps, screenShotLinks)
 
                 failedScenarios.add(scenario)
             }
         }
 
-        val featureTags = doc.body().select("div.feature > div.tags > a").eachText()
+        return failedScenarios
+    }
 
-        return Feature(featureName, featureTags.toSet(), failedScenarios)
+    private fun getScreenShotLinks(element: Element): List<String> {
+        val lastStep = element.select("div.step").last()
+
+        return if (lastStep.`is`("div.embeddings")) {
+            lastStep.select("div.embeddings div.embedding-content > img").eachAttr("src")
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun getHooks(element: Element): List<Hook> {
+        return element.select("div.hook").map { hook ->
+            val brief = hook.selectFirst("div.brief")
+
+            val type = when (brief.select("keyword").text().trim()) {
+                Hook.Type.BEFORE.text -> Hook.Type.BEFORE
+                Hook.Type.AFTER.text -> Hook.Type.AFTER
+                else -> Hook.Type.UNKNOWN
+            }
+
+            val name = brief.select("span.name").text()
+            val duration = brief.select("span.duration").text()
+            val result = getResult(brief)
+
+            Hook(type, name, duration, result)
+        }
+    }
+
+    private fun getSteps(element: Element): List<Step> {
+        return element.select("div.step").map { step ->
+            val brief = step.selectFirst("div.brief")
+
+            val type = when (brief.select("keyword").text().trim()) {
+                Step.Type.GIVEN.text -> Step.Type.GIVEN
+                Step.Type.WHEN.text -> Step.Type.WHEN
+                Step.Type.AND.text -> Step.Type.AND
+                Step.Type.THEN.text -> Step.Type.THEN
+                else -> Step.Type.UNKNOWN
+            }
+            val name = brief.select("span.name").text()
+            val duration = brief.select("span.duration").text()
+            val result = getResult(brief)
+
+            val arguments = getStepArguments(step)
+            val messages = if (result == Result.FAILED) getStepMessages(step) else emptyList()
+
+            Step(type, name, duration, result, messages, arguments)
+        }
+    }
+
+    private fun getResult(brief: Element): Result {
+        return when {
+            brief.hasClass(Result.PASSED.cssClass) -> Result.PASSED
+            brief.hasClass(Result.FAILED.cssClass) -> Result.FAILED
+            brief.hasClass(Result.UNDEFINED.cssClass) -> Result.UNDEFINED
+            brief.hasClass(Result.SKIPPED.cssClass) -> Result.SKIPPED
+            else -> Result.UNKNOWN
+        }
+    }
+
+    private fun getStepMessages(step: Element): List<String> {
+        return step.select("div.inner-level -> div.message > div[id^='msg'] > pre").eachText()
+    }
+
+    private fun getStepArguments(step: Element): List<List<String>> {
+        return if (step.`is`("table.step-arguments > tbody")) {
+            step.select("table.step-arguments > tbody > tr")
+                .map { tr -> tr.select("td").eachText() }
+        } else {
+            emptyList()
+        }
     }
 }
 

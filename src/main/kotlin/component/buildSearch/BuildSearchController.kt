@@ -8,15 +8,15 @@ import model.Job
 import mu.KotlinLogging
 import tornadofx.*
 
-class BuildSearchViewController: Controller() {
+class BuildSearchController: Controller() {
 
     private val logger = KotlinLogging.logger {}
 
     private var selectedJob: Job by property<Job>()
-    val selectedJobProperty = getProperty(BuildSearchViewController::selectedJob)
+    val selectedJobProperty = getProperty(BuildSearchController::selectedJob)
 
     private var buildSearchBar: String by property()
-    val buildSearchBarProperty = getProperty(BuildSearchViewController::buildSearchBar).apply {
+    val buildSearchBarProperty = getProperty(BuildSearchController::buildSearchBar).apply {
         addListener { _, oldValue, newValue ->
             filteredBuildList.setPredicate {
                 if (newValue.isNullOrBlank() || oldValue == newValue) true
@@ -26,7 +26,7 @@ class BuildSearchViewController: Controller() {
     }
 
     private var selectedBuild: Build by property<Build>()
-    val selectedBuildProperty = getProperty(BuildSearchViewController::selectedBuild)
+    val selectedBuildProperty = getProperty(BuildSearchController::selectedBuild)
 
     private var buildList: ObservableList<Build> by listProperty(observableListOf())
     private val filteredBuildList: FilteredList<Build> = FilteredList(buildList)

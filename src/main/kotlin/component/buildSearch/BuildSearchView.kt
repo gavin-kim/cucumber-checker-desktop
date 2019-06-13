@@ -13,7 +13,7 @@ class BuildSearchView : View("BuildSearchView") {
     private val logger = KotlinLogging.logger {}
 
     private val jobs = Job.values().toList()
-    private val controller: BuildSearchViewController by inject()
+    private val controller: BuildSearchController by inject()
     private val cucumberReportService: CucumberReportService by inject()
 
     override val root = vbox {
@@ -36,7 +36,7 @@ class BuildSearchView : View("BuildSearchView") {
         }
 
         label("Build")
-        textfield(controller.buildSearchBarProperty).textProperty()
+        textfield(controller.buildSearchBarProperty)
         listview(controller.filteredBuildListProperty) {
             fitToParentHeight()
             multiSelect(false)
