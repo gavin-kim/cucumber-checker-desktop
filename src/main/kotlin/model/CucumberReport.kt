@@ -64,7 +64,7 @@ data class Scenario(
     val name: String,
     val hooks: List<Hook>,
     val steps: List<Step>,
-    val screenShotLinks: List<String>
+    val screenShotFiles: List<String>
 )
 
 data class Build(

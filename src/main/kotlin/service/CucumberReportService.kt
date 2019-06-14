@@ -142,12 +142,12 @@ class CucumberReportService: Controller() {
         val featureTags = doc.body().select("div.feature > div.tags > a").eachText()
 
         val backgroundSteps =
-            if (elementsByKeyword[BACKGROUND] == null) emptyList()
-            else getSteps(elementsByKeyword[BACKGROUND]!!.first())
+            if (elementsByKeyword.contains(BACKGROUND)) getSteps(elementsByKeyword.getValue(BACKGROUND).first())
+            else emptyList()
 
         val failedScenarios =
-            if (elementsByKeyword[SCENARIO] == null) emptyList()
-            else getFailedScenarios(elementsByKeyword[SCENARIO]!!, failedScenarioNames)
+            if (elementsByKeyword.contains(SCENARIO)) getFailedScenarios(elementsByKeyword.getValue(SCENARIO), failedScenarioNames)
+            else emptyList()
 
         return Feature(featureName, featureTags.toSet(), failedScenarios, backgroundSteps)
     }
@@ -183,12 +183,7 @@ class CucumberReportService: Controller() {
 
     private fun getScreenShotLinks(element: Element): List<String> {
         val lastStep = element.select("div.step").last()
-
-        return if (lastStep.`is`("div.embeddings")) {
-            lastStep.select("div.embeddings div.embedding-content > img").eachAttr("src")
-        } else {
-            emptyList()
-        }
+        return lastStep.select("div.embeddings div.embedding-content > img").eachAttr("src")
     }
 
     private fun getHooks(element: Element): List<Hook> {
@@ -242,16 +237,11 @@ class CucumberReportService: Controller() {
     }
 
     private fun getStepMessages(step: Element): List<String> {
-        return step.select("div.inner-level -> div.message > div[id^='msg'] > pre").eachText()
+        return step.select("div.inner-level > div.message > div[id^='msg'] > pre").eachText()
     }
 
     private fun getStepArguments(step: Element): List<List<String>> {
-        return if (step.`is`("table.step-arguments > tbody")) {
-            step.select("table.step-arguments > tbody > tr")
-                .map { tr -> tr.select("td").eachText() }
-        } else {
-            emptyList()
-        }
+        return step.select("table.step-arguments > tbody > tr").map { tr -> tr.select("td").eachText() }
     }
 }
 

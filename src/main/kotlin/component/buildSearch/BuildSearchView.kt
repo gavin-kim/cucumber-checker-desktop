@@ -30,7 +30,7 @@ class BuildSearchView : View("BuildSearchView") {
                     controller.updateBuilds(it)
                 } fail {
                     controller.updateBuilds(emptyList())
-                    logger.error { it.message }
+                    logger.error { it }
                 }
             }
         }
@@ -68,7 +68,7 @@ class BuildSearchView : View("BuildSearchView") {
                 } success {
                     fire(DispatchReportEvent(it))
                 } fail {
-                    logger.error { it.message }
+                    logger.error { it }
                 }
             }
         }

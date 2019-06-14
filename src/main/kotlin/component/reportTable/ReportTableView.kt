@@ -12,14 +12,32 @@ class ReportTableView: View("ReportTableView") {
         readonlyColumn("Feature", Feature::name)
         readonlyColumn("Tags", Feature::tags)
 
-        rowExpander(expandOnDoubleClick = true) {
+        rowExpander(expandOnDoubleClick = true) { feature ->
+            label("asdf")
             paddingLeft = expanderColumn.width
 
-            tableview(it.failedScenarios.asObservable()) {
+            tableview(feature.failedScenarios.asObservable()) {
                 readonlyColumn("Scenario", Scenario::name)
-                readonlyColumn("Tags", Scenario::tags )
-                readonlyColumn("Failed Step", Scenario::failedStep)
-                readonlyColumn("Failed Reason", Scenario::failedReason)
+                readonlyColumn("Tags", Scenario::tags)
+                readonlyColumn("ScreenShots", Scenario::screenShotFiles) {
+                    cellCache {
+                        hbox {
+                            controller.buildScreenShotLinks(it).mapIndexed { index, link ->
+                                hyperlink("${index + 1}") {
+                                    setOnAction { hostServices.showDocument(link) }
+                                }
+                            }
+                        }
+                    }
+                }
+
+/*                rowExpander(expandOnDoubleClick = true) { scenario ->
+                    paddingLeft = expanderColumn.width
+
+                    val (beforeHooks, afterHooks) = scenario.hooks.partition { hook -> hook.type == Hook.Type.BEFORE }
+
+
+                }*/
             }
         }
     }
