@@ -1,5 +1,7 @@
 package component.reportTable
 
+import fragment.ScreenShotFragment
+import javafx.stage.StageStyle
 import model.Feature
 import model.Scenario
 import tornadofx.*
@@ -24,7 +26,10 @@ class ReportTableView: View("ReportTableView") {
                         hbox {
                             controller.buildScreenShotLinks(it).mapIndexed { index, link ->
                                 hyperlink("${index + 1}") {
-                                    setOnAction { hostServices.showDocument(link) }
+                                    setOnAction {
+                                        find<ScreenShotFragment>(ScreenShotFragment::link to link)
+                                            .openModal(StageStyle.UTILITY)
+                                    }
                                 }
                             }
                         }
