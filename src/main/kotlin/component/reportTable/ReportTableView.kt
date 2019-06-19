@@ -1,6 +1,7 @@
 package component.reportTable
 
 import fragment.ScreenShotFragment
+import javafx.stage.Modality
 import javafx.stage.StageStyle
 import model.Feature
 import model.Scenario
@@ -28,7 +29,7 @@ class ReportTableView: View("ReportTableView") {
                                 hyperlink("${index + 1}") {
                                     setOnAction {
                                         find<ScreenShotFragment>(ScreenShotFragment::link to link)
-                                            .openModal(StageStyle.UTILITY)
+                                            .openModal(StageStyle.UNDECORATED, Modality.NONE, resizable = true)
                                     }
                                 }
                             }
