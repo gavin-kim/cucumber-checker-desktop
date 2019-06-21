@@ -5,11 +5,14 @@ import mu.KotlinLogging
 import org.apache.http.HttpStatus
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import org.tmatesoft.svn.core.internal.io.dav.http.HTTPStatus
+import sun.misc.ObjectInputFilter
 import tornadofx.Controller
 
 private const val CUCUMBER_HOST = "http://wfm-ci.infor.com:8080"
 private const val CUCUMBER_HTML_REPORTS = "cucumber-html-reports"
 private const val OVERVIEW_FEATURES = "overview-features.html"
+private const val TEST_REPORT = "testReport"
 private const val SCENARIO = "Scenario"
 private const val BACKGROUND = "Background"
 
@@ -60,6 +63,11 @@ class CucumberReportService: Controller() {
         }
     }
 
+    private fun hasReport(link: String): Boolean {
+        val response = Jsoup.connect("$link$TEST_REPORT").ignoreHttpErrors(true).execute()
+        return response.statusCode() == HttpStatus.SC_OK
+    }
+
     fun investigateStatus(job: Job) {
         val rssUrl = "$CUCUMBER_HOST/job/${job.jobName}/rssAll"
 
@@ -81,7 +89,7 @@ class CucumberReportService: Controller() {
         }
     }
 
-    fun getReport(job: Job, build: Build): CucumberReport {
+    fun getReport(job: Job, build: Build): Report {
         val buildUrl = "$CUCUMBER_HOST/job/${job.jobName}/${build.id}"
 
         val failedScenarioNamesByFeatureName = getFailedScenarioNamesByFeatureName(buildUrl)
@@ -97,7 +105,7 @@ class CucumberReportService: Controller() {
             }
         }
 
-        return CucumberReport(job, build, failedFeatures)
+        return Report(job, build, failedFeatures)
     }
 
     private fun getFailedScenarioNamesByFeatureName(buildUrl: String): Map<String, List<String>> {

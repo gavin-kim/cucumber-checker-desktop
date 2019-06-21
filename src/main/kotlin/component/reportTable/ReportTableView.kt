@@ -36,6 +36,10 @@ class ReportTableView: View("ReportTableView") {
                         }
                     }
                 }
+                nestedColumn("asdf") {
+                    nestedColumn("asdf")
+                    nestedColumn("asdf")
+                }
 
 /*                rowExpander(expandOnDoubleClick = true) { scenario ->
                     paddingLeft = expanderColumn.width

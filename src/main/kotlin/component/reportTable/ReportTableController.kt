@@ -3,7 +3,7 @@ package component.reportTable
 import event.DispatchReportEvent
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
-import model.CucumberReport
+import model.Report
 import model.Feature
 
 import tornadofx.*
@@ -17,7 +17,7 @@ class ReportTableController: Controller() {
         }
     }
 
-    private lateinit var report: CucumberReport
+    private lateinit var report: Report
 
     private var failureList: ObservableList<Feature> by listProperty(mutableListOf<Feature>().asObservable())
     val failureListProperty = SimpleListProperty(failureList)

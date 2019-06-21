@@ -1,7 +1,7 @@
 package event
 
-import model.CucumberReport
+import model.Report
 import tornadofx.EventBus
 import tornadofx.FXEvent
 
-data class DispatchReportEvent(val report: CucumberReport) : FXEvent(EventBus.RunOn.ApplicationThread)
+data class DispatchReportEvent(val report: Report) : FXEvent(EventBus.RunOn.ApplicationThread)
