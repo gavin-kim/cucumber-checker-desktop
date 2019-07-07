@@ -1,25 +1,67 @@
 package service
 
-import model.Job
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.ZoneOffset.UTC
-import java.time.ZonedDateTime
-import java.util.*
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import model.Result
+import model.View
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+private const val TEST_JOB = "ExecuteCucumberRun-Oracle-Parallel"
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CucumberReportServiceTest {
-}
 
-fun main(args: Array<String>) {
-    //CucumberReportService().investigateStatus(Job.MANUAL_ORACLE_JOB)
+    private val service = CucumberReportService()
+    private val mapper = ObjectMapper().registerKotlinModule().writerWithDefaultPrettyPrinter()
 
-    val dateformat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-    val now = ZonedDateTime.of(ZonedDateTime.parse("2019-05-26T05:25:34Z").toLocalDateTime(), UTC)
+    @Test
+    fun `getBuilds`() {
+        val builds = service.getBuilds(TEST_JOB)
+        prettyPrint(builds)
+    }
+
+    @Test
+    fun `getBuilds - NoReport`() {
+        val builds = service.getBuilds(TEST_JOB)
+        val noReportBuilds = builds.filter { it.finished && !it.hasReport }
+
+        prettyPrint(noReportBuilds)
+    }
+
+    @Test
+    fun `getCucumberJobs - manual trunk`() {
+        val jobs = service.getCucumberJobs(View.MANUAL_VALIDATION_ON_TRUNK)
+        prettyPrint(jobs)
+    }
+
+    @Test
+    fun `getCucumberJobs - manual maintenance`() {
+        val jobs = service.getCucumberJobs(View.MANUAL_VALIDATION_ON_MAINT)
+        prettyPrint(jobs)
+    }
+
+    @Test
+    fun `getCucumberJobs - auto triggers`() {
+        val jobs = service.getCucumberJobs(View.CUCUMBER_UI_AUTOMATION)
+        prettyPrint(jobs)
+    }
+
+    @Test
+    fun `get - auto triggers`() {
+        val report = service.getReport("ExecuteCucumberRun-Oracle-Parallel", 16263)
+
+        val numberOfFailedScenario = report.failedFeatures.sumBy { it.failedScenarios.count() }
+        prettyPrint(numberOfFailedScenario)
+
+        val failedStep = report.failedFeatures.flatMap { it.failedScenarios.filter {
+            it.hooks.any { it.result == Result.FAILED } } }
+        prettyPrint(failedStep.size)
+        prettyPrint(failedStep)
+    }
 
 
-    println(now.toOffsetDateTime())
-    println(now.toLocalDateTime())
-    println(now)
+    private fun prettyPrint(any: Any) {
+        println(mapper.writeValueAsString(any))
+    }
 }

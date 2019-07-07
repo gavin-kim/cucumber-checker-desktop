@@ -1,5 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val kotlinVersion = "1.3.40"
+
 group = "com.gavin"
 version = "0.0.1"
 
@@ -11,7 +13,7 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("stdlib-jdk8", kotlinVersion))
 
     implementation("org.apache.httpcomponents:httpclient:4.5.1")
     implementation("org.jsoup:jsoup:1.11.3")
@@ -19,9 +21,11 @@ dependencies {
     implementation("no.tornado:tornadofx:1.7.19")
     implementation("io.github.microutils:kotlin-logging:1.6.24")
     implementation("org.slf4j:slf4j-simple:1.7.26")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7")
 
     // Use JUnit test framework
-    testImplementation("junit:junit:4.12")
+    testImplementation(kotlin("test", kotlinVersion))
+    testImplementation(kotlin("test-junit5", kotlinVersion))
 }
 
 repositories {

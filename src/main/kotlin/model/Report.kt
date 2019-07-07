@@ -1,7 +1,8 @@
 package model
 
 data class Report(
-    val job: Job,
-    val build: Build,
+    val jobName: String,
+    val buildId: Int,
+    val buildUrl: String,
     val failedFeatures: List<Feature>
 )
