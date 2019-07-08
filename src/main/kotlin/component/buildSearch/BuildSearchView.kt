@@ -31,7 +31,7 @@ class BuildSearchView : View("BuildSearchView") {
             cellFormat {
                 text =
                     if (it.userId.isBlank()) "${it.id}, ${it.name}"
-                    else "${it.id}, ${it.name}, ${it.userId}, ${it.userName}"
+                    else "${it.id}, ${it.name} (${it.userId}, ${it.userName})"
 
                 val image = when (it.result) {
                     Build.Result.ABORTED -> Image("image/grey.png", 20.0, 20.0, true, true)
