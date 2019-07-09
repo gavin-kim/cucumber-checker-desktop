@@ -16,6 +16,7 @@ data class Build(
         SUCCESS,
         FAILURE,
         UNSTABLE,
-        ABORTED
+        ABORTED,
+        UNKNOWN
     }
 }

@@ -38,6 +38,7 @@ class BuildSearchView : View("BuildSearchView") {
                     Build.Result.SUCCESS -> Image("image/blue.png", 20.0, 20.0, true, true)
                     Build.Result.UNSTABLE -> Image("image/yellow.png", 20.0, 20.0, true, true)
                     Build.Result.FAILURE -> Image("image/red.png", 20.0, 20.0, true, true)
+                    Build.Result.UNKNOWN -> Image("", 20.0, 20.0, true, true)
                 }
 
                 graphic = imageview(image)

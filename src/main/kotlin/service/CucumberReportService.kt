@@ -58,7 +58,7 @@ class CucumberReportService : Controller() {
             "FAILURE" -> Build.Result.FAILURE
             "UNSTABLE" -> Build.Result.UNSTABLE
             "ABORTED" -> Build.Result.ABORTED
-            else -> throw IllegalArgumentException("Invalid result: $result")
+            else -> Build.Result.UNKNOWN
         }
     }
 

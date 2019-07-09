@@ -18,6 +18,4 @@ class ScreenShotFragment: Fragment() {
             fitToParentSize()
         }
     }
-
-
 }
