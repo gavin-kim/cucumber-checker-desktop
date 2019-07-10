@@ -9,6 +9,7 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.stage.Modality
 import javafx.stage.StageStyle
+import model.Feature
 import model.Report
 import model.Result
 import model.Scenario
@@ -18,6 +19,7 @@ import tornadofx.*
 class ScenarioTableController: Controller() {
 
     private lateinit var report: Report
+    private lateinit var featureMap: Map<String, Feature>
     private lateinit var scenarioMap: Map<Pair<String/*Feature Name*/, String/*Scenario Name*/>, Scenario>
 
     private var displayOverlay: Boolean by property()
@@ -67,6 +69,7 @@ class ScenarioTableController: Controller() {
             displayOverlay = false
 
             report = it.report
+            featureMap = getFeatureMap(it.report)
             scenarioMap = getScenarioMap(it.report)
 
             val featureViewModels = buildFeatureViewModels(it.report)
@@ -79,10 +82,16 @@ class ScenarioTableController: Controller() {
     private fun addSelectedFeaturePropertyListener() {
         selectedReportRowProperty.addListener { _, oldValue, newValue ->
             if (newValue != null && oldValue != newValue) {
+                val feature = checkNotNull(featureMap[newValue.featureName])
                 val scenario = checkNotNull(scenarioMap[newValue.featureName to newValue.scenarioName])
-                fire(ReportEvent.ScenarioSelected(scenario))
+
+                fire(ReportEvent.ScenarioSelected(scenario, feature.backgroundSteps))
             }
         }
+    }
+
+    private fun getFeatureMap(report: Report): Map<String, Feature> {
+        return report.failedFeatures.associateBy { it.name }
     }
 
     private fun getScenarioMap(report: Report): Map<Pair<String, String>, Scenario> {
