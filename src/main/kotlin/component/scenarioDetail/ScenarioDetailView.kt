@@ -1,5 +1,6 @@
 package component.scenarioDetail
 
+import javafx.scene.control.TreeItem
 import javafx.scene.paint.Color
 import model.Result
 import tornadofx.*
@@ -9,56 +10,48 @@ class ScenarioDetailView : View("ScenarioDetailView") {
 
     private val controller: ScenarioDetailController by inject()
 
-    override val root = tableview(controller.scenarioDetailModelProperty) {
-        smartResize()
+    override val root = treeview<Any> {
+        fitToParentSize()
 
-        readonlyColumn("Before Hooks", ScenarioDetailModel::beforeHooks).cellFormat {
-            graphic = listview(it.toObservable()) {
-                cellFormat { hook ->
-                    text = hook.name
+        root = TreeItem("Details")
 
-                    style {
-                        backgroundColor += getBackGroundColor(hook.result)
-                    }
-                }
+        cellFormat {
+            text = when (it) {
+                is String -> it
+                is StepDetail -> "${it.keyword} ${it.name}"
+                is StepDetailGroup -> it.text
+                else -> throw IllegalArgumentException()
             }
 
-        }
-
-        readonlyColumn("Background Steps", ScenarioDetailModel::backgroundSteps).cellFormat {
-            graphic = listview(it.toObservable()) {
-                cellFormat { step ->
-                    text = step.name
-
-                    style {
-                        backgroundColor += getBackGroundColor(step.result)
-                    }
-                }
-            }
-
-        }
-
-        readonlyColumn("Steps", ScenarioDetailModel::steps).cellFormat {
-            graphic = listview(it.toObservable()) {
-                cellFormat { step ->
-                    text = step.name
-
-                    style {
-                        backgroundColor += getBackGroundColor(step.result)
-                    }
+            style {
+                if (it is StepDetail) {
+                    backgroundColor += getBackGroundColor(it.result)
                 }
             }
         }
 
-        readonlyColumn("After Hooks", ScenarioDetailModel::afterHooks).cellFormat {
-            graphic = listview(it.toObservable()) {
-                cellFormat { hook ->
-                    text = hook.name
+        populate { parent ->
+            when {
+                parent == root -> controller.stepGroupsProperty
+                parent.value == StepDetailGroup.BEFORE_HOOKS -> controller.beforeHooksProperty
+                parent.value == StepDetailGroup.BACKGROUND_STEPS -> controller.backgroundStepsProperty
+                parent.value == StepDetailGroup.STEPS -> controller.stepsProperty
+                parent.value == StepDetailGroup.AFTER_HOOKS -> controller.afterHooksProperty
+                else -> null
+            }
+        }
 
-                    style {
-                        backgroundColor += getBackGroundColor(hook.result)
-                    }
-                }
+        controller.updatedProperty.addListener { _, _, _ ->
+            expandFailedStepGroups(root)
+        }
+
+    }
+
+    private fun expandFailedStepGroups(root: TreeItem<Any>) {
+        root.children.forEach { stepGroupTreeItem ->
+            if (stepGroupTreeItem.children.any { (it.value as StepDetail).result == Result.FAILED }) {
+                root.isExpanded = true
+                stepGroupTreeItem.isExpanded = true
             }
         }
     }
@@ -67,7 +60,7 @@ class ScenarioDetailView : View("ScenarioDetailView") {
         return when (result) {
             Result.PASSED -> c("#79FEAA")
             Result.FAILED -> c("#FE7D7D")
-            Result.SKIPPED -> c("#798BFE")
+            Result.SKIPPED -> c("#68B8FE")
             else -> c("#DEF972")
         }
     }

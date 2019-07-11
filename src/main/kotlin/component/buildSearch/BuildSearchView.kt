@@ -45,7 +45,7 @@ class BuildSearchView : View("BuildSearchView") {
                 isDisable = it.hasReport.not()
 
                 style {
-                    textFill = if (it.hasReport.not()) Color.RED else Color.BLACK
+                    textFill = if (it.hasReport.not()) Color.DARKGRAY else Color.BLACK
                 }
             }
         }

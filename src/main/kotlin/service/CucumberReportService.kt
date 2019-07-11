@@ -123,7 +123,7 @@ class CucumberReportService : Controller() {
         val featureTags = doc.body().select("div.feature > div.tags > a").eachText()
 
         val backgroundSteps =
-            if (elementsByKeyword.contains(BACKGROUND)) getSteps(elementsByKeyword.getValue(BACKGROUND).first())
+            if (elementsByKeyword.contains(BACKGROUND)) getSteps(Step.Type.BACKGROUND_STEP, elementsByKeyword.getValue(BACKGROUND).first())
             else emptyList()
 
         val failedScenarios =
@@ -150,7 +150,7 @@ class CucumberReportService : Controller() {
                 val scenarioTags = element.select("div.tags > a").eachText()
 
                 val hooks = getHooks(element)
-                val steps = getSteps(element)
+                val steps = getSteps(Step.Type.STEP, element)
                 val screenShotLinks = getScreenShotLinks(element)
 
                 val scenario = Scenario(scenarioTags.toSet(), scenarioName, hooks, steps, screenShotLinks)
@@ -167,29 +167,29 @@ class CucumberReportService : Controller() {
         return lastStep.select("div.embeddings div.embedding-content > img").eachAttr("src")
     }
 
-    private fun getHooks(element: Element): List<Hook> {
+    private fun getHooks(element: Element): List<Step> {
         return element.select("div.hook").map { hook ->
             val brief = hook.selectFirst("div.brief")
 
-            val type = when (brief.select("span.keyword").text().trim()) {
-                Hook.Keyword.BEFORE.text -> Hook.Keyword.BEFORE
-                Hook.Keyword.AFTER.text -> Hook.Keyword.AFTER
-                else -> Hook.Keyword.UNKNOWN
+            val keyword = when (brief.select("span.keyword").text().trim()) {
+                Step.Keyword.BEFORE.text -> Step.Keyword.BEFORE
+                Step.Keyword.AFTER.text -> Step.Keyword.AFTER
+                else -> Step.Keyword.UNKNOWN
             }
 
             val name = brief.select("span.name").text()
             val duration = brief.select("span.duration").text()
             val result = getResult(brief)
 
-            Hook(type, name, duration, result)
+            Step(Step.Type.HOOK, keyword, name, duration, result)
         }
     }
 
-    private fun getSteps(element: Element): List<Step> {
+    private fun getSteps(type: Step.Type, element: Element): List<Step> {
         return element.select("div.step").map { step ->
             val brief = step.selectFirst("div.brief")
 
-            val type = when (brief.select("span.keyword").text().trim()) {
+            val keyword = when (brief.select("span.keyword").text().trim()) {
                 Step.Keyword.GIVEN.text -> Step.Keyword.GIVEN
                 Step.Keyword.WHEN.text -> Step.Keyword.WHEN
                 Step.Keyword.AND.text -> Step.Keyword.AND
@@ -203,7 +203,7 @@ class CucumberReportService : Controller() {
             val arguments = getStepArguments(step)
             val messages = if (result == Result.FAILED) getStepMessages(step) else emptyList()
 
-            Step(type, name, duration, result, messages, arguments)
+            Step(type, keyword, name, duration, result, messages, arguments)
         }
     }
 

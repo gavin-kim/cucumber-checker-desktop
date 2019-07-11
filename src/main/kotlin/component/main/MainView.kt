@@ -14,6 +14,8 @@ class MainView: View("MainView") {
     private val reportView: ReportView by inject()
 
     override val root = borderpane {
+        fitToParentSize()
+
         left {
             add(buildSearchView)
         }

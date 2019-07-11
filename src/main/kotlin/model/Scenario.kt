@@ -3,7 +3,7 @@ package model
 data class Scenario(
     val tags: Set<String>,
     val name: String,
-    val hooks: List<Hook>,
+    val hooks: List<Step>,
     val steps: List<Step>,
     val screenShotFiles: List<String>
 )

@@ -1,9 +1,8 @@
 package component.scenarioDetail
 
-import event.ReportEvent
+import event.ScenarioSelected
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
-import model.Hook
 import model.Scenario
 import model.Step
 import tornadofx.*
@@ -11,19 +10,60 @@ import tornadofx.*
 class ScenarioDetailController : Controller() {
 
     private lateinit var scenario: Scenario
-    private lateinit var backgroundSteps: List<Step>
 
-    private val scenarioDetailModel: ObservableList<ScenarioDetailModel> by listProperty(observableListOf())
-    val scenarioDetailModelProperty = SimpleListProperty(scenarioDetailModel)
+    private val stepGroups: ObservableList<StepDetailGroup> by listProperty(observableListOf())
+    val stepGroupsProperty = SimpleListProperty(stepGroups)
+
+    private val beforeHooks: ObservableList<StepDetail> by listProperty(observableListOf())
+    val beforeHooksProperty = SimpleListProperty(beforeHooks)
+
+    private val afterHooks: ObservableList<StepDetail> by listProperty(observableListOf())
+    val afterHooksProperty = SimpleListProperty(afterHooks)
+
+    private val backgroundSteps: ObservableList<StepDetail> by listProperty(observableListOf())
+    val backgroundStepsProperty = SimpleListProperty(backgroundSteps)
+
+    private val steps: ObservableList<StepDetail> by listProperty(observableListOf())
+    val stepsProperty = SimpleListProperty(steps)
+
+    private var updated: Boolean by property(true)
+    val updatedProperty = getProperty(ScenarioDetailController::updated)
 
     init {
-        subscribe<ReportEvent.ScenarioSelected> {
-            scenarioDetailModel.setAll(ScenarioDetailModel(
-                it.scenario.hooks.filter { hook -> hook.keyword == Hook.Keyword.BEFORE },
-                it.backgroundSteps,
-                it.scenario.steps,
-                it.scenario.hooks.filter { hook -> hook.keyword == Hook.Keyword.AFTER }
-            ))
+        subscribe<ScenarioSelected> {
+            stepGroups.setAll(
+                StepDetailGroup.BEFORE_HOOKS,
+                StepDetailGroup.BACKGROUND_STEPS,
+                StepDetailGroup.STEPS,
+                StepDetailGroup.AFTER_HOOKS
+            )
+
+            beforeHooks.setAll(
+                it.scenario.hooks
+                    .filter { hook -> hook.keyword == Step.Keyword.BEFORE }
+                    .map { hook -> buildScenarioDetailModel(hook) }
+            )
+
+            afterHooks.setAll(
+                it.scenario.hooks
+                    .filter { hook -> hook.keyword == Step.Keyword.AFTER }
+                    .map { hook -> buildScenarioDetailModel(hook) }
+            )
+
+            backgroundSteps.setAll(it.backgroundSteps.map { step -> buildScenarioDetailModel(step) })
+            steps.setAll(it.scenario.steps.map { step -> buildScenarioDetailModel(step) })
+            updated = !updated
         }
+    }
+
+    private fun buildScenarioDetailModel(step: Step): StepDetail {
+        return StepDetail(
+            step.keyword.text,
+            step.name,
+            step.duration,
+            step.result,
+            step.messages,
+            step.arguments
+        )
     }
 }

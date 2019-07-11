@@ -1,6 +1,7 @@
 package component.buildSearch
 
-import event.BuildSearchEvent
+import event.ReportButtonClicked
+import event.ReportLoaded
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
@@ -57,10 +58,10 @@ class BuildSearchController: Controller() {
         button.isDisable = true
 
         runAsync {
-            fire(BuildSearchEvent.ReportButtonClick())
+            fire(ReportButtonClicked())
             cucumberReportService.getReport(selectedJob, selectedBuild.id)
         } success {
-            fire(BuildSearchEvent.ReportLoaded(it))
+            fire(ReportLoaded(it))
         } fail {
             logger.error(it) {}
         } finally {
