@@ -7,5 +7,6 @@ data class ScenarioTableRow(
     val scenarioTags: String,
     val screenShotLinks: List<String>,
     val failedSpot: String,
-    val failedSteps: String
+    val failedSteps: String,
+    val unstable: Boolean
 )

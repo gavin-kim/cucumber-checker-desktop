@@ -65,35 +65,31 @@ class CucumberReportService : Controller() {
     fun getReport(jobName: String, buildId: Int): Report {
         val buildUrl = "$CUCUMBER_HOST/job/$jobName/$buildId"
 
-        val failedScenarioNamesByFeatureName = getFailedScenarioNamesByFeatureName(buildUrl)
+        val scenarioFailedCountMapByFeatureName = getScenarioFailedCountMapByFeatureName(buildUrl)
+
         val reportHtmlByFeature = getReportHtmlByFeature(buildUrl)
 
-        val failedFeatures = mutableListOf<Feature>()
-
-        failedScenarioNamesByFeatureName.forEach { (featureName, failedScenarioNames) ->
-            if (reportHtmlByFeature.containsKey(featureName)) {
-                val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS/${reportHtmlByFeature[featureName]}"
-                val failedFeature = getFailedFeature(reportUrl, featureName, failedScenarioNames)
-                failedFeatures.add(failedFeature)
-            }
+        val failedFeatures = scenarioFailedCountMapByFeatureName.map { (featureName, scenarioFailedCountMap) ->
+            val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS/${reportHtmlByFeature[featureName]}"
+            getFailedFeature(reportUrl, featureName, scenarioFailedCountMap)
         }
 
         return Report(jobName, buildId, buildUrl, failedFeatures)
     }
 
-    private fun getFailedScenarioNamesByFeatureName(buildUrl: String): Map<String, List<String>> {
+
+    private fun getScenarioFailedCountMapByFeatureName(buildUrl: String): Map<String, Map<String, Int>> {
         val doc = Jsoup.connect(buildUrl).maxBodySize(0).get()
 
         val failedTestNames = doc.body().select("a[href='testReport/']").next().select("li > a")
             .map { it.text().trim() }
 
-        val actualFailedTestNames = failedTestNames
+        return failedTestNames
             .groupingBy { it }
             .eachCount()
-            .filter { it.value >= 2 }
-            .keys
-
-        return actualFailedTestNames.groupBy({ it.substringBefore(".") }, { it.substringAfter(".") })
+            .entries
+            .groupBy({ it.key.substringBefore(".") }, { it.key.substringAfter(".") to it.value })
+            .mapValues { (_, value) -> value.toMap() }
     }
 
     private fun getReportHtmlByFeature(buildUrl: String): Map<String, String> {
@@ -113,7 +109,7 @@ class CucumberReportService : Controller() {
             }.toMap()
     }
 
-    private fun getFailedFeature(reportUrl: String, featureName: String, failedScenarioNames: Collection<String>): Feature {
+    private fun getFailedFeature(reportUrl: String, featureName: String, scenarioFailedCountMap: Map<String, Int>): Feature {
 
         val doc = Jsoup.connect(reportUrl).maxBodySize(0).get()
 
@@ -127,7 +123,7 @@ class CucumberReportService : Controller() {
             else emptyList()
 
         val failedScenarios =
-            if (elementsByKeyword.contains(SCENARIO)) getFailedScenarios(elementsByKeyword.getValue(SCENARIO), failedScenarioNames)
+            if (elementsByKeyword.contains(SCENARIO)) getFailedScenarios(elementsByKeyword.getValue(SCENARIO), scenarioFailedCountMap)
             else emptyList()
 
         return Feature(featureName, featureTags.toSet(), failedScenarios, backgroundSteps)
@@ -139,21 +135,21 @@ class CucumberReportService : Controller() {
         }
     }
 
-    private fun getFailedScenarios(elements: List<Element>, failedScenarioNames: Collection<String>): List<Scenario> {
-        val failedScenarioNameSet = failedScenarioNames.toSet()
+    private fun getFailedScenarios(elements: List<Element>, scenarioFailedCountMap: Map<String, Int>): List<Scenario> {
         val failedScenarios = mutableListOf<Scenario>()
 
         elements.forEach { element ->
             val scenarioName = element.selectFirst("span.name").text()
 
-            if (failedScenarioNameSet.contains(scenarioName)) {
+            if (scenarioFailedCountMap.contains(scenarioName)) {
                 val scenarioTags = element.select("div.tags > a").eachText()
 
                 val hooks = getHooks(element)
                 val steps = getSteps(Step.Type.STEP, element)
                 val screenShotLinks = getScreenShotLinks(element)
+                val unstable = scenarioFailedCountMap.getValue(scenarioName) < 2
 
-                val scenario = Scenario(scenarioTags.toSet(), scenarioName, hooks, steps, screenShotLinks)
+                val scenario = Scenario(scenarioTags.toSet(), scenarioName, hooks, steps, screenShotLinks, unstable)
 
                 failedScenarios.add(scenario)
             }

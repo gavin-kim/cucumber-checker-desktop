@@ -48,7 +48,7 @@ class CucumberReportServiceTest {
     }
 
     @Test
-    fun `get - auto triggers`() {
+    fun `getReport - check all report has a screenshot`() {
         val report = service.getReport("ExecuteCucumberRun-Oracle-Parallel", 16263)
 
         val numberOfFailedScenario = report.failedFeatures.sumBy { it.failedScenarios.count() }

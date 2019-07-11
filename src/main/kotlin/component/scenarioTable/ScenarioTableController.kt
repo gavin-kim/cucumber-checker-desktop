@@ -56,7 +56,8 @@ class ScenarioTableController: Controller() {
                         failedHooks.isNotEmpty() -> "Hook"
                         else -> "Unknown"
                     },
-                    failedSteps = (failedBackgroundSteps + failedSteps + failedHooks).joinToString { "${it.keyword.text} ${it.name}" }
+                    failedSteps = (failedBackgroundSteps + failedSteps + failedHooks).joinToString { "${it.keyword.text} ${it.name}" },
+                    unstable = scenario.unstable
                 )
             }
         }

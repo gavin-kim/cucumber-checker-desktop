@@ -5,5 +5,6 @@ data class Scenario(
     val name: String,
     val hooks: List<Step>,
     val steps: List<Step>,
-    val screenShotFiles: List<String>
+    val screenShotFiles: List<String>,
+    val unstable: Boolean
 )
