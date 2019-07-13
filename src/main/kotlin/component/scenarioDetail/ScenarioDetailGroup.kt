@@ -1,6 +1,6 @@
 package component.scenarioDetail
 
-enum class StepDetailGroup(val text: String) {
+enum class ScenarioDetailGroup(val text: String) {
     BEFORE_HOOKS("Before Hooks"),
     BACKGROUND_STEPS("Background Steps"),
     STEPS("Steps"),

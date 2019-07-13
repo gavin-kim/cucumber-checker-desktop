@@ -11,53 +11,53 @@ class ScenarioDetailController : Controller() {
 
     private lateinit var scenario: Scenario
 
-    private val stepGroups: ObservableList<StepDetailGroup> by listProperty(observableListOf())
-    val stepGroupsProperty = SimpleListProperty(stepGroups)
+    private val scenarioGroupList: ObservableList<ScenarioDetailGroup> by listProperty(observableListOf())
+    val scenarioGroupListProperty = SimpleListProperty(scenarioGroupList)
 
-    private val beforeHooks: ObservableList<StepDetail> by listProperty(observableListOf())
-    val beforeHooksProperty = SimpleListProperty(beforeHooks)
+    private val beforeHookList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    val beforeHookListProperty = SimpleListProperty(beforeHookList)
 
-    private val afterHooks: ObservableList<StepDetail> by listProperty(observableListOf())
-    val afterHooksProperty = SimpleListProperty(afterHooks)
+    private val afterHookList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    val afterHookListProperty = SimpleListProperty(afterHookList)
 
-    private val backgroundSteps: ObservableList<StepDetail> by listProperty(observableListOf())
-    val backgroundStepsProperty = SimpleListProperty(backgroundSteps)
+    private val backgroundStepList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    val backgroundStepListProperty = SimpleListProperty(backgroundStepList)
 
-    private val steps: ObservableList<StepDetail> by listProperty(observableListOf())
-    val stepsProperty = SimpleListProperty(steps)
+    private val stepList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    val stepListProperty = SimpleListProperty(stepList)
 
     private var updated: Boolean by property(true)
     val updatedProperty = getProperty(ScenarioDetailController::updated)
 
     init {
         subscribe<ScenarioSelected> {
-            stepGroups.setAll(
-                StepDetailGroup.BEFORE_HOOKS,
-                StepDetailGroup.BACKGROUND_STEPS,
-                StepDetailGroup.STEPS,
-                StepDetailGroup.AFTER_HOOKS
+            scenarioGroupList.setAll(
+                ScenarioDetailGroup.BEFORE_HOOKS,
+                ScenarioDetailGroup.BACKGROUND_STEPS,
+                ScenarioDetailGroup.STEPS,
+                ScenarioDetailGroup.AFTER_HOOKS
             )
 
-            beforeHooks.setAll(
+            beforeHookList.setAll(
                 it.scenario.hooks
                     .filter { hook -> hook.keyword == Step.Keyword.BEFORE }
                     .map { hook -> buildScenarioDetailModel(hook) }
             )
 
-            afterHooks.setAll(
+            afterHookList.setAll(
                 it.scenario.hooks
                     .filter { hook -> hook.keyword == Step.Keyword.AFTER }
                     .map { hook -> buildScenarioDetailModel(hook) }
             )
 
-            backgroundSteps.setAll(it.backgroundSteps.map { step -> buildScenarioDetailModel(step) })
-            steps.setAll(it.scenario.steps.map { step -> buildScenarioDetailModel(step) })
+            backgroundStepList.setAll(it.backgroundSteps.map { step -> buildScenarioDetailModel(step) })
+            stepList.setAll(it.scenario.steps.map { step -> buildScenarioDetailModel(step) })
             updated = !updated
         }
     }
 
-    private fun buildScenarioDetailModel(step: Step): StepDetail {
-        return StepDetail(
+    private fun buildScenarioDetailModel(step: Step): ScenarioDetailItem {
+        return ScenarioDetailItem(
             step.keyword.text,
             step.name,
             step.duration,

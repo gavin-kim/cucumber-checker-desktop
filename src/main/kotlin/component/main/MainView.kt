@@ -5,23 +5,23 @@ import tornadofx.*
 import component.buildSearch.BuildSearchView
 import component.report.ReportView
 import component.scenarioTable.ScenarioTableView
+import javafx.scene.layout.Priority
 
 class MainView: View("MainView") {
 
     private val logger = KotlinLogging.logger {}
 
-    private val buildSearchView: BuildSearchView by inject()
-    private val reportView: ReportView by inject()
+    override val root = hbox {
 
-    override val root = borderpane {
-        fitToParentSize()
+        add(BuildSearchView::class)
+        add(ReportView::class)
 
-        left {
-            add(buildSearchView)
+        style {
+            backgroundColor += c("#00FF00")
         }
+    }
 
-        center {
-            add(reportView)
-        }
+    override fun onDock() {
+        root.fitToParentSize()
     }
 }

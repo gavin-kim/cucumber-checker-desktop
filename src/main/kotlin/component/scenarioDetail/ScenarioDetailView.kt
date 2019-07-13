@@ -11,20 +11,18 @@ class ScenarioDetailView : View("ScenarioDetailView") {
     private val controller: ScenarioDetailController by inject()
 
     override val root = treeview<Any> {
-        fitToParentSize()
-
         root = TreeItem("Details")
 
         cellFormat {
             text = when (it) {
                 is String -> it
-                is StepDetail -> "${it.keyword} ${it.name}"
-                is StepDetailGroup -> it.text
+                is ScenarioDetailItem -> "${it.keyword} ${it.name}"
+                is ScenarioDetailGroup -> it.text
                 else -> throw IllegalArgumentException()
             }
 
             style {
-                if (it is StepDetail) {
+                if (it is ScenarioDetailItem) {
                     backgroundColor += getBackGroundColor(it.result)
                 }
             }
@@ -32,11 +30,11 @@ class ScenarioDetailView : View("ScenarioDetailView") {
 
         populate { parent ->
             when {
-                parent == root -> controller.stepGroupsProperty
-                parent.value == StepDetailGroup.BEFORE_HOOKS -> controller.beforeHooksProperty
-                parent.value == StepDetailGroup.BACKGROUND_STEPS -> controller.backgroundStepsProperty
-                parent.value == StepDetailGroup.STEPS -> controller.stepsProperty
-                parent.value == StepDetailGroup.AFTER_HOOKS -> controller.afterHooksProperty
+                parent == root -> controller.scenarioGroupListProperty
+                parent.value == ScenarioDetailGroup.BEFORE_HOOKS -> controller.beforeHookListProperty
+                parent.value == ScenarioDetailGroup.BACKGROUND_STEPS -> controller.backgroundStepListProperty
+                parent.value == ScenarioDetailGroup.STEPS -> controller.stepListProperty
+                parent.value == ScenarioDetailGroup.AFTER_HOOKS -> controller.afterHookListProperty
                 else -> null
             }
         }
@@ -49,7 +47,7 @@ class ScenarioDetailView : View("ScenarioDetailView") {
 
     private fun expandFailedStepGroups(root: TreeItem<Any>) {
         root.children.forEach { stepGroupTreeItem ->
-            if (stepGroupTreeItem.children.any { (it.value as StepDetail).result == Result.FAILED }) {
+            if (stepGroupTreeItem.children.any { (it.value as ScenarioDetailItem).result == Result.FAILED }) {
                 root.isExpanded = true
                 stepGroupTreeItem.isExpanded = true
             }
@@ -63,5 +61,9 @@ class ScenarioDetailView : View("ScenarioDetailView") {
             Result.SKIPPED -> c("#68B8FE")
             else -> c("#DEF972")
         }
+    }
+
+    override fun onDock() {
+        root.fitToParentSize()
     }
 }

@@ -49,15 +49,9 @@ class CucumberReportServiceTest {
 
     @Test
     fun `getReport - check all report has a screenshot`() {
-        val report = service.getReport("ExecuteCucumberRun-Oracle-Parallel", 16263)
+        val report = service.getReport("ExecuteCucumberRun-Oracle-Parallel", 16416)
 
-        val numberOfFailedScenario = report.failedFeatures.sumBy { it.failedScenarios.count() }
-        prettyPrint(numberOfFailedScenario)
-
-        val failedStep = report.failedFeatures.flatMap { it.failedScenarios.filter {
-            it.hooks.any { it.result == Result.FAILED } } }
-        prettyPrint(failedStep.size)
-        prettyPrint(failedStep)
+        prettyPrint(report)
     }
 
 

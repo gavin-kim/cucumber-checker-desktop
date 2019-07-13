@@ -2,7 +2,7 @@ package component.scenarioDetail
 
 import model.Result
 
-data class StepDetail(
+data class ScenarioDetailItem(
     val keyword: String,
     val name: String,
     val duration: String,

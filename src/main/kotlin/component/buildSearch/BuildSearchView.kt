@@ -55,4 +55,8 @@ class BuildSearchView : View("BuildSearchView") {
             onAction = controller.onGetReportButtonClick(this)
         }
     }
+
+    override fun onDock() {
+        root.fitToParentSize()
+    }
 }
