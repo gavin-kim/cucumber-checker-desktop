@@ -47,8 +47,8 @@ class ScenarioTableController: Controller() {
             featureMap = getFeatureMap(it.report)
             scenarioMap = getScenarioMap(it.report)
 
-            val featureViewModels = buildFeatureViewModels(it.report)
-            scenarioTableRowList.setAll(featureViewModels)
+            val scenarioTableRows = buildScenarioTableRows(it.report)
+            scenarioTableRowList.setAll(scenarioTableRows)
 
             fire(HideReportOverlay())
         }
@@ -61,7 +61,7 @@ class ScenarioTableController: Controller() {
         addSelectedFeaturePropertyListener()
     }
 
-    private fun buildFeatureViewModels(report: Report): List<ScenarioTableRow> {
+    private fun buildScenarioTableRows(report: Report): List<ScenarioTableRow> {
         return report.failedFeatures.flatMap { feature ->
 
             val failedBackgroundSteps = feature.backgroundSteps.filter { it.result == Step.Result.FAILED }

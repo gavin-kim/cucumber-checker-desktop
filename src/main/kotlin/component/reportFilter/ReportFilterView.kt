@@ -26,7 +26,13 @@ class ReportFilterView : View("ReportFilterView") {
 
                             listview(ScenarioTableColumn.values().toList().toObservable()) {
                                 multiSelect(true)
+
+                                selectionModel.select(ScenarioTableColumn.FEATURE)
+                                selectionModel.select(ScenarioTableColumn.SCENARIO)
+                                selectionModel.select(ScenarioTableColumn.FAILED_SPOT)
+                                selectionModel.select(ScenarioTableColumn.SCREENSHOTS)
                                 controller.selectedDisplayColumnsProperty.bindContent(selectionModel.selectedItems)
+
 
                                 cellFormat {
                                     text = it.label

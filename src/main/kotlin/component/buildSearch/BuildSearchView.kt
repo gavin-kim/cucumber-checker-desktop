@@ -9,7 +9,13 @@ import tornadofx.*
 class BuildSearchView : View("BuildSearchView") {
 
     private val logger = KotlinLogging.logger {}
+
     private val controller: BuildSearchController by inject()
+
+    private val buildSuccessImagePath = app.config.string("build.success.image.path")
+    private val buildFailureImagePath = app.config.string("build.failure.image.path")
+    private val buildUnstableImagePath = app.config.string("build.unstable.image.path")
+    private val buildAbortedImagePath = app.config.string("build.aborted.image.path")
 
     override val root = vbox {
 
@@ -53,15 +59,15 @@ class BuildSearchView : View("BuildSearchView") {
     }
 
     private fun getImage(result: Build.Result): Image {
-        val imageFile = when (result) {
-            Build.Result.ABORTED -> "image/grey.png"
-            Build.Result.SUCCESS -> "image/blue.png"
-            Build.Result.UNSTABLE -> "image/yellow.png"
-            Build.Result.FAILURE -> "image/red.png"
+        val imagePath = when (result) {
+            Build.Result.ABORTED -> buildAbortedImagePath
+            Build.Result.SUCCESS -> buildSuccessImagePath
+            Build.Result.UNSTABLE -> buildUnstableImagePath
+            Build.Result.FAILURE -> buildFailureImagePath
             Build.Result.UNKNOWN -> ""
         }
 
-        return Image(imageFile, 20.0, 20.0, true, true)
+        return Image(imagePath, 20.0, 20.0, true, true)
     }
 
     override fun onDock() {

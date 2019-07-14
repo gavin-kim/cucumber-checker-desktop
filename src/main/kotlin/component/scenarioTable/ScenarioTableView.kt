@@ -10,6 +10,9 @@ class ScenarioTableView : View("ScenarioTableView") {
 
     private val controller: ScenarioTableController by inject()
 
+    private val scenarioFailedImagePath = app.config.string("scenario.failed.image.path")
+    private val scenarioUnstableImagePath = app.config.string("scenario.unstable.image.path")
+
     override val root = tableview(controller.scenarioRowTableRowListProperty) {
         bindSelected(controller.selectedReportRowProperty)
 
@@ -66,7 +69,7 @@ class ScenarioTableView : View("ScenarioTableView") {
     }
 
     private fun getStatusIconImage(unstable: Boolean): Image {
-        return Image(if (unstable) "image/warning.png" else "image/error.png", 16.0, 16.0, true, true)
+        return Image(if (unstable) scenarioUnstableImagePath else scenarioFailedImagePath, 16.0, 16.0, true, true)
     }
 
     override fun onDock() {
