@@ -1,7 +1,8 @@
 package component.buildSearch
 
-import event.ReportButtonClicked
-import event.ReportLoaded
+import event.DisplayReport
+import event.HideReportOverlay
+import event.ShowReportOverlay
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
@@ -9,7 +10,6 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.ComboBox
-
 import model.Build
 import model.View
 import mu.KotlinLogging
@@ -58,13 +58,15 @@ class BuildSearchController: Controller() {
         button.isDisable = true
 
         runAsync {
-            fire(ReportButtonClicked())
+            fire(ShowReportOverlay())
+            logger.info("Selected Job: $selectedJob, SelectedBuild: ${selectedBuild.id}")
             cucumberReportService.getReport(selectedJob, selectedBuild.id)
         } success {
-            fire(ReportLoaded(it))
+            fire(DisplayReport(it))
         } fail {
             logger.error(it) {}
         } finally {
+            fire(HideReportOverlay())
             button.isDisable = false
         }
     }

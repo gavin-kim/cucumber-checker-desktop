@@ -1,24 +1,19 @@
 package component.main
 
-import mu.KotlinLogging
-import tornadofx.*
 import component.buildSearch.BuildSearchView
 import component.report.ReportView
-import component.scenarioTable.ScenarioTableView
-import javafx.scene.layout.Priority
+import mu.KotlinLogging
+import tornadofx.View
+import tornadofx.fitToParentSize
+import tornadofx.hbox
 
 class MainView: View("MainView") {
 
     private val logger = KotlinLogging.logger {}
 
-    override val root = hbox {
-
+    override val root = hbox(2) {
         add(BuildSearchView::class)
         add(ReportView::class)
-
-        style {
-            backgroundColor += c("#00FF00")
-        }
     }
 
     override fun onDock() {

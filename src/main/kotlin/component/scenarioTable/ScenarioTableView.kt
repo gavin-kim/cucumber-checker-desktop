@@ -1,5 +1,6 @@
 package component.scenarioTable
 
+import event.RequestReportFilterData
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
@@ -9,41 +10,67 @@ class ScenarioTableView : View("ScenarioTableView") {
 
     private val controller: ScenarioTableController by inject()
 
-    override val root = tableview(controller.reportRowModelListProperty) {
+    override val root = tableview(controller.scenarioRowTableRowListProperty) {
         bindSelected(controller.selectedReportRowProperty)
 
-        readonlyColumn("", ScenarioTableRow::unstable).cellFormat {
-            text = ""
-            graphic = imageview(Image(if (it) "image/warning.png" else "image/error.png", 20.0, 20.0, true, true))
-        }
-        readonlyColumn("Feature", ScenarioTableRow::featureName)
-        readonlyColumn("Feature Tags", ScenarioTableRow::featureTags)
-        readonlyColumn("Scenario", ScenarioTableRow::scenarioName)
-        readonlyColumn("Scenario Tags", ScenarioTableRow::scenarioTags)
-        readonlyColumn("Screenshots", ScenarioTableRow::screenShotLinks).cellCache {
-            hbox {
-                it.mapIndexed { index, link ->
-                    hyperlink("${index + 1}") {
-                        onAction = controller.onScreenShotLinkClick(link)
+        readonlyColumn("", ScenarioTableRow::unstable) {
+            usePrefWidth = true
+            prefWidth = 24.0
 
-                        style {
-                            textFill = Color.CHOCOLATE
-                            fontWeight = FontWeight.BOLD
+            cellFormat {
+                text = ""
+                graphic = imageview(getStatusIconImage(it))
+            }
+        }
+        readonlyColumn(ScenarioTableColumn.FEATURE.label, ScenarioTableRow::featureName) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.FEATURE, visibleProperty())
+        }
+        readonlyColumn(ScenarioTableColumn.FEATURE_TAGS.label, ScenarioTableRow::featureTags) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.FEATURE_TAGS, visibleProperty())
+        }
+        readonlyColumn(ScenarioTableColumn.SCENARIO.label, ScenarioTableRow::scenarioName) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.SCENARIO, visibleProperty())
+        }
+        readonlyColumn(ScenarioTableColumn.SCENARIO_TAGS.label, ScenarioTableRow::scenarioTags) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.SCENARIO_TAGS, visibleProperty())
+        }
+        readonlyColumn(ScenarioTableColumn.SCREENSHOTS.label, ScenarioTableRow::screenShotLinks) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.SCREENSHOTS, visibleProperty())
+
+            cellCache {
+                hbox {
+                    it.mapIndexed { index, link ->
+                        hyperlink("${index + 1}") {
+                            onAction = controller.onScreenShotLinkClick(link)
+
+                            style {
+                                textFill = Color.CHOCOLATE
+                                fontWeight = FontWeight.BOLD
+                            }
                         }
                     }
                 }
             }
         }
-        readonlyColumn("Failed Spot", ScenarioTableRow::failedSpot)
-        readonlyColumn("Failed Step", ScenarioTableRow::failedSteps)
+        readonlyColumn(ScenarioTableColumn.FAILED_SPOT.label, ScenarioTableRow::failedSpot) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_SPOT, visibleProperty())
+        }
+        readonlyColumn(ScenarioTableColumn.FAILED_STEPS.label, ScenarioTableRow::failedSteps) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_STEPS, visibleProperty())
+        }
 
         style {
-            fontSize = 11.px
+            fontSize = 12.px
             padding = box(0.px)
         }
     }
 
+    private fun getStatusIconImage(unstable: Boolean): Image {
+        return Image(if (unstable) "image/warning.png" else "image/error.png", 16.0, 16.0, true, true)
+    }
+
     override fun onDock() {
         root.fitToParentSize()
+        fire(RequestReportFilterData())
     }
 }

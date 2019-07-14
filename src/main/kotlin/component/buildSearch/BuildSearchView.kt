@@ -1,10 +1,7 @@
 package component.buildSearch
 
 import javafx.scene.image.Image
-import javafx.scene.layout.Background
-import javafx.scene.layout.BackgroundFill
 import javafx.scene.paint.Color
-import javafx.scene.paint.Paint
 import model.Build
 import mu.KotlinLogging
 import tornadofx.*
@@ -15,14 +12,21 @@ class BuildSearchView : View("BuildSearchView") {
     private val controller: BuildSearchController by inject()
 
     override val root = vbox {
-        label("Job")
+
+        label("Job") {
+            padding = insets(5)
+        }
         combobox(property = controller.selectedJobProperty, values = controller.jobListProperty) {
             useMaxWidth = true
             onAction = controller.onJobListChange(this)
         }
 
-        label("Build")
-        textfield(controller.buildFilterValueProperty)
+        label("Build") {
+            padding = insets(5)
+        }
+        textfield(controller.buildFilterValueProperty) {
+            promptText = "Build Filter"
+        }
         listview(controller.buildListProperty) {
             fitToParentHeight()
             multiSelect(false)
@@ -33,15 +37,7 @@ class BuildSearchView : View("BuildSearchView") {
                     if (it.userId.isBlank()) "${it.id}, ${it.name}"
                     else "${it.id}, ${it.name} (${it.userId}, ${it.userName})"
 
-                val image = when (it.result) {
-                    Build.Result.ABORTED -> Image("image/grey.png", 20.0, 20.0, true, true)
-                    Build.Result.SUCCESS -> Image("image/blue.png", 20.0, 20.0, true, true)
-                    Build.Result.UNSTABLE -> Image("image/yellow.png", 20.0, 20.0, true, true)
-                    Build.Result.FAILURE -> Image("image/red.png", 20.0, 20.0, true, true)
-                    Build.Result.UNKNOWN -> Image("", 20.0, 20.0, true, true)
-                }
-
-                graphic = imageview(image)
+                graphic = imageview(getImage(it.result))
                 isDisable = it.hasReport.not()
 
                 style {
@@ -56,7 +52,21 @@ class BuildSearchView : View("BuildSearchView") {
         }
     }
 
+    private fun getImage(result: Build.Result): Image {
+        val imageFile = when (result) {
+            Build.Result.ABORTED -> "image/grey.png"
+            Build.Result.SUCCESS -> "image/blue.png"
+            Build.Result.UNSTABLE -> "image/yellow.png"
+            Build.Result.FAILURE -> "image/red.png"
+            Build.Result.UNKNOWN -> ""
+        }
+
+        return Image(imageFile, 20.0, 20.0, true, true)
+    }
+
     override fun onDock() {
-        root.fitToParentSize()
+        root.fitToParentHeight()
+        root.usePrefWidth = true
+        root.prefWidthProperty().set(400.0)
     }
 }

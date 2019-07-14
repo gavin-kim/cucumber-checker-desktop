@@ -24,4 +24,12 @@ data class Step(
         THEN("Then"),
         UNKNOWN("")
     }
+
+    enum class Result(val cssClass: String) {
+        PASSED("passed"),
+        FAILED("failed"),
+        UNDEFINED("undefined"),
+        SKIPPED("skipped"),
+        UNKNOWN("")
+    }
 }

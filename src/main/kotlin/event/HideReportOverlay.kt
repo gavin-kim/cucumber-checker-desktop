@@ -3,4 +3,4 @@ package event
 import tornadofx.EventBus
 import tornadofx.FXEvent
 
-class ReportDisplayed : FXEvent(EventBus.RunOn.ApplicationThread)
+class HideReportOverlay : FXEvent(EventBus.RunOn.ApplicationThread)

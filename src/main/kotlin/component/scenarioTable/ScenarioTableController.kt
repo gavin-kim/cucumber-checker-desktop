@@ -1,20 +1,20 @@
 package component.scenarioTable
 
-import event.ReportDisplayed
-import event.ReportLoaded
-import event.ScenarioSelected
+import component.reportFilter.ReportFilterData
+import event.*
 import fragment.ScreenShotFragment
+import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.stage.Modality
 import javafx.stage.StageStyle
 import model.Feature
 import model.Report
-import model.Result
 import model.Scenario
-
+import model.Step
 import tornadofx.*
 
 class ScenarioTableController: Controller() {
@@ -27,22 +27,49 @@ class ScenarioTableController: Controller() {
     val selectedReportRowProperty = getProperty(ScenarioTableController::selectedScenarioTableRow)
 
     private val scenarioTableRowList: ObservableList<ScenarioTableRow> by listProperty(observableListOf())
-    val reportRowModelListProperty = SimpleListProperty(scenarioTableRowList)
+    private val filteredScenarioTableRowList: FilteredList<ScenarioTableRow> = FilteredList(scenarioTableRowList)
+    val scenarioRowTableRowListProperty = SimpleListProperty(filteredScenarioTableRowList)
+
+    private val columnVisiblePropertyMap: MutableMap<ScenarioTableColumn, BooleanProperty> = mutableMapOf()
 
     fun onScreenShotLinkClick(link: String) = EventHandler<ActionEvent> {
         find<ScreenShotFragment>(ScreenShotFragment::link to link)
             .openModal(StageStyle.UNDECORATED, Modality.NONE, resizable = true)
     }
 
+    fun setColumnVisibleProperty(column: ScenarioTableColumn, visibleProperty: BooleanProperty) {
+        columnVisiblePropertyMap[column] = visibleProperty;
+    }
+
+    init {
+        subscribe<DisplayReport> {
+            report = it.report
+            featureMap = getFeatureMap(it.report)
+            scenarioMap = getScenarioMap(it.report)
+
+            val featureViewModels = buildFeatureViewModels(it.report)
+            scenarioTableRowList.setAll(featureViewModels)
+
+            fire(HideReportOverlay())
+        }
+
+        subscribe<DispatchReportFilterData> {
+            updateFilteredScenarioTableRowList(it.reportFilterData)
+            updateColumnVisibleProperties(it.reportFilterData.displayColumns)
+        }
+
+        addSelectedFeaturePropertyListener()
+    }
+
     private fun buildFeatureViewModels(report: Report): List<ScenarioTableRow> {
         return report.failedFeatures.flatMap { feature ->
 
-            val failedBackgroundSteps = feature.backgroundSteps.filter { it.result == Result.FAILED }
+            val failedBackgroundSteps = feature.backgroundSteps.filter { it.result == Step.Result.FAILED }
 
             feature.failedScenarios.map { scenario ->
 
-                val failedSteps = scenario.steps.filter { it.result == Result.FAILED }
-                val failedHooks = scenario.hooks.filter { it.result == Result.FAILED }
+                val failedSteps = scenario.steps.filter { it.result == Step.Result.FAILED }
+                val failedHooks = scenario.hooks.filter { it.result == Step.Result.FAILED }
 
                 ScenarioTableRow(
                     featureName = feature.name,
@@ -63,28 +90,13 @@ class ScenarioTableController: Controller() {
         }
     }
 
-    init {
-        subscribe<ReportLoaded> {
-            report = it.report
-            featureMap = getFeatureMap(it.report)
-            scenarioMap = getScenarioMap(it.report)
-
-            val featureViewModels = buildFeatureViewModels(it.report)
-            scenarioTableRowList.setAll(featureViewModels)
-
-            fire(ReportDisplayed())
-        }
-
-        addSelectedFeaturePropertyListener()
-    }
-
     private fun addSelectedFeaturePropertyListener() {
         selectedReportRowProperty.addListener { _, oldValue, newValue ->
             if (newValue != null && oldValue != newValue) {
                 val feature = checkNotNull(featureMap[newValue.featureName])
                 val scenario = checkNotNull(scenarioMap[newValue.featureName to newValue.scenarioName])
 
-                fire(ScenarioSelected(scenario, feature.backgroundSteps))
+                fire(DisplayScenarioDetail(scenario, feature.backgroundSteps))
             }
         }
     }
@@ -97,5 +109,20 @@ class ScenarioTableController: Controller() {
         return report.failedFeatures.flatMap { feature ->
             feature.failedScenarios.map { scenario ->  (feature.name to scenario.name) to scenario }
         }.toMap()
+    }
+
+    private fun updateFilteredScenarioTableRowList(reportFilterData: ReportFilterData) {
+        filteredScenarioTableRowList.setPredicate {
+            if (reportFilterData.showUnstableTests) true
+            else it.unstable.not()
+        }
+    }
+
+    private fun updateColumnVisibleProperties(displayColumns: Collection<ScenarioTableColumn>) {
+        val displayColumnSet = displayColumns.toSet()
+
+        columnVisiblePropertyMap.forEach { (column, visibilityProperty) ->
+            visibilityProperty.set(displayColumnSet.contains(column))
+        }
     }
 }

@@ -2,7 +2,7 @@ package component.scenarioDetail
 
 import javafx.scene.control.TreeItem
 import javafx.scene.paint.Color
-import model.Result
+import model.Step
 import tornadofx.*
 
 
@@ -16,13 +16,13 @@ class ScenarioDetailView : View("ScenarioDetailView") {
         cellFormat {
             text = when (it) {
                 is String -> it
-                is ScenarioDetailItem -> "${it.keyword} ${it.name}"
+                is ScenarioDetail -> "${it.keyword} ${it.name}"
                 is ScenarioDetailGroup -> it.text
                 else -> throw IllegalArgumentException()
             }
 
             style {
-                if (it is ScenarioDetailItem) {
+                if (it is ScenarioDetail) {
                     backgroundColor += getBackGroundColor(it.result)
                 }
             }
@@ -47,18 +47,18 @@ class ScenarioDetailView : View("ScenarioDetailView") {
 
     private fun expandFailedStepGroups(root: TreeItem<Any>) {
         root.children.forEach { stepGroupTreeItem ->
-            if (stepGroupTreeItem.children.any { (it.value as ScenarioDetailItem).result == Result.FAILED }) {
+            if (stepGroupTreeItem.children.any { (it.value as ScenarioDetail).result == Step.Result.FAILED }) {
                 root.isExpanded = true
                 stepGroupTreeItem.isExpanded = true
             }
         }
     }
 
-    private fun getBackGroundColor(result: Result): Color {
+    private fun getBackGroundColor(result: Step.Result): Color {
         return when (result) {
-            Result.PASSED -> c("#79FEAA")
-            Result.FAILED -> c("#FE7D7D")
-            Result.SKIPPED -> c("#68B8FE")
+            Step.Result.PASSED -> c("#79FEAA")
+            Step.Result.FAILED -> c("#FE7D7D")
+            Step.Result.SKIPPED -> c("#68B8FE")
             else -> c("#DEF972")
         }
     }

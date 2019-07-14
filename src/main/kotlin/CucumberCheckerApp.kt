@@ -1,45 +1,35 @@
-import tornadofx.*
 import component.main.MainView
 import javafx.scene.Scene
-import javafx.scene.SceneAntialiasing
 import javafx.scene.paint.Color
-import javafx.stage.Stage
-import java.nio.charset.Charset
+import mu.KotlinLogging
+import tornadofx.App
+import tornadofx.UIComponent
 import java.nio.file.Path
-import kotlin.reflect.KClass
+import java.util.*
+
+private const val APP_PROPERTIES_FILE = "app.properties"
 
 class CucumberCheckerApp: App(MainView::class) {
-    override val config: ConfigProperties
-        get() = super.config
-    override val configBasePath: Path
-        get() = super.configBasePath
-    override val configCharset: Charset
-        get() = super.configCharset
-    override val configPath: Path
-        get() = super.configPath
-    override val primaryView: KClass<out UIComponent>
-        get() = super.primaryView
-    override var scope: Scope
-        get() = super.scope
-        set(value) {}
+
+    private val logger = KotlinLogging.logger {}
+
+    override val configPath: Path = configBasePath.resolve("config.properties")
 
     override fun createPrimaryScene(view: UIComponent): Scene {
         return Scene(view.root, 1600.0, 900.0, Color.WHITE)
     }
 
-    override fun onBeforeShow(view: UIComponent) {
-        super.onBeforeShow(view)
+    init {
+        val properties = loadAppProperties()
+        savePropertiesToConfig(properties)
     }
 
-    override fun shouldShowPrimaryStage(): Boolean {
-        return super.shouldShowPrimaryStage()
+    private fun loadAppProperties(): Properties {
+        return CucumberCheckerApp::class.java.getResourceAsStream(APP_PROPERTIES_FILE)
+            .use { stream -> Properties().also { it.load(stream) } }
     }
 
-    override fun start(stage: Stage) {
-        super.start(stage)
-    }
-
-    override fun stop() {
-        super.stop()
+    private fun savePropertiesToConfig(properties: Properties) {
+        properties.entries.forEach { this.config[it.key] = it.value }
     }
 }

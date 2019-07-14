@@ -3,8 +3,6 @@ package component.report
 import component.reportFilter.ReportFilterView
 import component.scenarioDetail.ScenarioDetailView
 import component.scenarioTable.ScenarioTableView
-import javafx.geometry.Pos
-import javafx.scene.layout.Priority
 import tornadofx.*
 
 class ReportView : View("ReportView") {
@@ -12,7 +10,7 @@ class ReportView : View("ReportView") {
     private val controller: ReportController by inject()
     private val overlayContainer = stackpane { add(MaskPane()) }
 
-    override val root = vbox {
+    override val root = vbox(2) {
         add(ReportFilterView::class)
         add(ScenarioTableView::class)
         add(ScenarioDetailView::class)
@@ -24,10 +22,6 @@ class ReportView : View("ReportView") {
             } else {
                 overlayContainer.replaceWith(this)
             }
-        }
-
-        style {
-            backgroundColor += c("#FF0000")
         }
     }
 

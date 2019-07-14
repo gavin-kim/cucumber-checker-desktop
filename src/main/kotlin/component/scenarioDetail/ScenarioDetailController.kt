@@ -1,6 +1,6 @@
 package component.scenarioDetail
 
-import event.ScenarioSelected
+import event.DisplayScenarioDetail
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import model.Scenario
@@ -14,23 +14,23 @@ class ScenarioDetailController : Controller() {
     private val scenarioGroupList: ObservableList<ScenarioDetailGroup> by listProperty(observableListOf())
     val scenarioGroupListProperty = SimpleListProperty(scenarioGroupList)
 
-    private val beforeHookList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    private val beforeHookList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
     val beforeHookListProperty = SimpleListProperty(beforeHookList)
 
-    private val afterHookList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    private val afterHookList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
     val afterHookListProperty = SimpleListProperty(afterHookList)
 
-    private val backgroundStepList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    private val backgroundStepList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
     val backgroundStepListProperty = SimpleListProperty(backgroundStepList)
 
-    private val stepList: ObservableList<ScenarioDetailItem> by listProperty(observableListOf())
+    private val stepList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
     val stepListProperty = SimpleListProperty(stepList)
 
     private var updated: Boolean by property(true)
     val updatedProperty = getProperty(ScenarioDetailController::updated)
 
     init {
-        subscribe<ScenarioSelected> {
+        subscribe<DisplayScenarioDetail> {
             scenarioGroupList.setAll(
                 ScenarioDetailGroup.BEFORE_HOOKS,
                 ScenarioDetailGroup.BACKGROUND_STEPS,
@@ -56,8 +56,8 @@ class ScenarioDetailController : Controller() {
         }
     }
 
-    private fun buildScenarioDetailModel(step: Step): ScenarioDetailItem {
-        return ScenarioDetailItem(
+    private fun buildScenarioDetailModel(step: Step): ScenarioDetail {
+        return ScenarioDetail(
             step.keyword.text,
             step.name,
             step.duration,

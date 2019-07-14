@@ -1,7 +1,10 @@
 package fragment
 
 import javafx.scene.image.Image
-import tornadofx.*
+import tornadofx.Fragment
+import tornadofx.fitToParentSize
+import tornadofx.imageview
+import tornadofx.stackpane
 
 class ScreenShotFragment: Fragment() {
 

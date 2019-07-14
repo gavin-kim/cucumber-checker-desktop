@@ -7,20 +7,24 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import tornadofx.Controller
 
-private const val CUCUMBER_HOST = "http://wfm-ci.infor.com:8080"
+private const val DEFAULT_SERVER_URL = "http://wfm-ci.infor.com:8080"
 private const val CUCUMBER_HTML_REPORTS = "cucumber-html-reports"
 private const val OVERVIEW_FEATURES = "overview-features.html"
 private const val TEST_REPORT = "testReport"
 private const val SCENARIO = "Scenario"
 private const val BACKGROUND = "Background"
 private const val XML_BUILD_SEARCH_QUERY = "xml?tree=builds[building,id,displayName,result,duration,timestamp,actions[causes[userId,userName]]]"
+private const val XML_FAILED_RESULT_QUERY = "xml?tree=suites[cases[className,name,status]]&xpath=/testResult/suite/case/status[contains(text(),'REGRESSION') or contains(text(),'FAILED')]/..&wrapper=failedResult"
 
 class CucumberReportService : Controller() {
 
-    val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
+
+    //private val serverUrl = app.config.string("server.url", DEFAULT_SERVER_URL)
+    private val serverUrl = DEFAULT_SERVER_URL
 
     fun getBuilds(job: String): List<Build> {
-        val jobUrl = "$CUCUMBER_HOST/job/$job"
+        val jobUrl = "$serverUrl/job/$job"
         val url = "$jobUrl/api/$XML_BUILD_SEARCH_QUERY"
 
         val xml = Jsoup.connect(url).maxBodySize(0).get()
@@ -63,7 +67,7 @@ class CucumberReportService : Controller() {
     }
 
     fun getReport(jobName: String, buildId: Int): Report {
-        val buildUrl = "$CUCUMBER_HOST/job/$jobName/$buildId"
+        val buildUrl = "$serverUrl/job/$jobName/$buildId"
 
         val scenarioFailedCountMapByFeatureName = getScenarioFailedCountMapByFeatureName(buildUrl)
 
@@ -79,16 +83,18 @@ class CucumberReportService : Controller() {
 
 
     private fun getScenarioFailedCountMapByFeatureName(buildUrl: String): Map<String, Map<String, Int>> {
-        val doc = Jsoup.connect(buildUrl).maxBodySize(0).get()
+        val url = "$buildUrl/$TEST_REPORT/api/$XML_FAILED_RESULT_QUERY"
 
-        val failedTestNames = doc.body().select("a[href='testReport/']").next().select("li > a")
-            .map { it.text().trim() }
+        val xml = Jsoup.connect(url).maxBodySize(0).get()
 
-        return failedTestNames
+        val featureScenarioNamePairs = xml.select("case")
+            .map { it.select("className").text() to it.select("name").text() }
+
+        return featureScenarioNamePairs
             .groupingBy { it }
             .eachCount()
             .entries
-            .groupBy({ it.key.substringBefore(".") }, { it.key.substringAfter(".") to it.value })
+            .groupBy({ it.key.first }, { it.key.second to it.value })
             .mapValues { (_, value) -> value.toMap() }
     }
 
@@ -197,19 +203,19 @@ class CucumberReportService : Controller() {
             val result = getResult(brief)
 
             val arguments = getStepArguments(step)
-            val messages = if (result == Result.FAILED) getStepMessages(step) else emptyList()
+            val messages = if (result == Step.Result.FAILED) getStepMessages(step) else emptyList()
 
             Step(type, keyword, name, duration, result, messages, arguments)
         }
     }
 
-    private fun getResult(brief: Element): Result {
+    private fun getResult(brief: Element): Step.Result {
         return when {
-            brief.hasClass(Result.PASSED.cssClass) -> Result.PASSED
-            brief.hasClass(Result.FAILED.cssClass) -> Result.FAILED
-            brief.hasClass(Result.UNDEFINED.cssClass) -> Result.UNDEFINED
-            brief.hasClass(Result.SKIPPED.cssClass) -> Result.SKIPPED
-            else -> Result.UNKNOWN
+            brief.hasClass(Step.Result.PASSED.cssClass) -> Step.Result.PASSED
+            brief.hasClass(Step.Result.FAILED.cssClass) -> Step.Result.FAILED
+            brief.hasClass(Step.Result.UNDEFINED.cssClass) -> Step.Result.UNDEFINED
+            brief.hasClass(Step.Result.SKIPPED.cssClass) -> Step.Result.SKIPPED
+            else -> Step.Result.UNKNOWN
         }
     }
 
@@ -222,7 +228,7 @@ class CucumberReportService : Controller() {
     }
 
     fun getCucumberJobs(view: View): List<String> {
-        val url = "$CUCUMBER_HOST/view/${view.viewName}/api/xml"
+        val url = "$serverUrl/view/${view.viewName}/api/xml"
 
         val xml = Jsoup.connect(url).maxBodySize(0).get()
 
