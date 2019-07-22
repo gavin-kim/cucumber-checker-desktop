@@ -17,7 +17,7 @@ dependencies {
 
     implementation("org.apache.httpcomponents:httpclient:4.5.1")
     implementation("org.jsoup:jsoup:1.11.3")
-    implementation("org.tmatesoft.svnkit:svnkit:1.9.3")
+    implementation("org.tmatesoft.svnkit:svnkit:1.10.1")
     implementation("no.tornado:tornadofx:1.7.19")
     implementation("io.github.microutils:kotlin-logging:1.6.24")
     implementation("org.slf4j:slf4j-simple:1.7.26")

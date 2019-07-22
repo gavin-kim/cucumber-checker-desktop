@@ -39,10 +39,7 @@ class BuildSearchView : View("BuildSearchView") {
             bindSelected(property = controller.selectedBuildProperty)
 
             cellFormat {
-                text =
-                    if (it.userId.isBlank()) "${it.id}, ${it.name}"
-                    else "${it.id}, ${it.name} (${it.userId}, ${it.userName})"
-
+                text = it.text
                 graphic = imageview(getImage(it.result))
                 isDisable = it.hasReport.not()
 

@@ -84,7 +84,7 @@ class BuildSearchController: Controller() {
         buildFilterValueProperty.addListener { _, oldValue, newValue ->
             filteredBuildList.setPredicate {
                 if (newValue.isNullOrBlank() || oldValue == newValue) true
-                else it.name.contains(newValue, true)
+                else it.text.contains(newValue, true)
             }
         }
     }

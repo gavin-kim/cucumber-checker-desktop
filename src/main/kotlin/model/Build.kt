@@ -12,6 +12,10 @@ data class Build(
     val userId: String,
     val userName: String
 ) {
+    val text =
+        if (userId.isBlank()) "$id, $name"
+        else "$id, $name ($userId, $userName)"
+
     enum class Result {
         SUCCESS,
         FAILURE,
