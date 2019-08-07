@@ -40,8 +40,8 @@ class ScenarioTableView : View("ScenarioTableView") {
         readonlyColumn(ScenarioTableColumn.SCREENSHOTS.label, ScenarioTableRow::screenShotLinks) {
             controller.setColumnVisibleProperty(ScenarioTableColumn.SCREENSHOTS, visibleProperty())
 
-            cellCache {
-                hbox {
+            cellFormat {
+                graphic = hbox {
                     it.mapIndexed { index, link ->
                         hyperlink("${index + 1}") {
                             onAction = controller.onScreenShotLinkClick(link)
@@ -54,6 +54,7 @@ class ScenarioTableView : View("ScenarioTableView") {
                     }
                 }
             }
+
         }
         readonlyColumn(ScenarioTableColumn.FAILED_SPOT.label, ScenarioTableRow::failedSpot) {
             controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_SPOT, visibleProperty())
