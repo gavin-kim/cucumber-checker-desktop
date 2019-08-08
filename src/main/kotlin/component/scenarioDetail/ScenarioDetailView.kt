@@ -1,6 +1,8 @@
 package component.scenarioDetail
 
+import javafx.geometry.Pos
 import javafx.scene.control.TreeItem
+import javafx.scene.layout.BorderStrokeStyle
 import javafx.scene.paint.Color
 import model.Step
 import tornadofx.*
@@ -14,11 +16,42 @@ class ScenarioDetailView : View("ScenarioDetailView") {
         root = TreeItem("Details")
 
         cellFormat {
-            text = when (it) {
-                is String -> it
-                is ScenarioDetail -> "${it.keyword} ${it.name}"
-                is ScenarioDetailGroup -> it.text
-                else -> throw IllegalArgumentException()
+            graphic = vbox {
+                val text = when (it) {
+                    is String -> it
+                    is ScenarioDetail -> "${it.keyword} ${it.name}"
+                    is ScenarioDetailGroup -> it.text
+                    else -> throw IllegalArgumentException()
+                }
+
+                stackpane {
+                    label(text)
+
+                    style {
+                        alignment = Pos.CENTER_LEFT
+                    }
+                }
+
+                if (it is ScenarioDetail && it.arguments.isNotEmpty()) {
+                    gridpane {
+                        it.arguments.forEach { arguments ->
+                            row {
+                                arguments.forEach { argument ->
+                                    add(label(argument) {
+                                        style {
+                                            paddingAll = 3
+                                        }
+                                    })
+                                }
+                            }
+                        }
+
+                        style {
+                            gridLinesVisible = true
+                            alignment = Pos.CENTER_LEFT
+                        }
+                    }
+                }
             }
 
             style {
