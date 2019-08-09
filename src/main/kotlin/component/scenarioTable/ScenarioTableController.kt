@@ -9,6 +9,11 @@ import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
+import javafx.scene.control.TableView
+import javafx.scene.input.Clipboard
+import javafx.scene.input.ClipboardContent
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.stage.Modality
 import javafx.stage.StageStyle
 import model.Feature
@@ -16,6 +21,8 @@ import model.Report
 import model.Scenario
 import model.Step
 import tornadofx.*
+import javax.sound.sampled.Clip
+import component.scenarioTable.ScenarioTableRow as ScenarioTableRow1
 
 class ScenarioTableController: Controller() {
 
@@ -23,14 +30,27 @@ class ScenarioTableController: Controller() {
     private lateinit var featureMap: Map<String, Feature>
     private lateinit var scenarioMap: Map<Pair<String/*Feature Name*/, String/*Scenario Name*/>, Scenario>
 
-    private var selectedScenarioTableRow: ScenarioTableRow by property()
+    private var selectedScenarioTableRow: ScenarioTableRow1 by property()
     val selectedReportRowProperty = getProperty(ScenarioTableController::selectedScenarioTableRow)
 
-    private val scenarioTableRowList: ObservableList<ScenarioTableRow> by listProperty(observableListOf())
-    private val filteredScenarioTableRowList: FilteredList<ScenarioTableRow> = FilteredList(scenarioTableRowList)
+    private val scenarioTableRowList: ObservableList<ScenarioTableRow1> by listProperty(observableListOf())
+    private val filteredScenarioTableRowList: FilteredList<ScenarioTableRow1> = FilteredList(scenarioTableRowList)
     val scenarioRowTableRowListProperty = SimpleListProperty(filteredScenarioTableRowList)
 
     private val columnVisiblePropertyMap: MutableMap<ScenarioTableColumn, BooleanProperty> = mutableMapOf()
+
+    val onKeyPressed = EventHandler<KeyEvent> {
+        when {
+            it.isControlDown && it.code === KeyCode.C -> copySelectionToClipboard(it.source as TableView<ScenarioTableRow1>)
+        }
+    }
+
+    private fun copySelectionToClipboard(tableView: TableView<ScenarioTableRow1>) {
+        val clipboardContent = ClipboardContent()
+
+        clipboardContent.putString(tableView.selectedValue.toString())
+        Clipboard.getSystemClipboard().setContent(clipboardContent)
+    }
 
     fun onScreenShotLinkClick(link: String) = EventHandler<ActionEvent> {
         find<ScreenShotFragment>(ScreenShotFragment::link to link)
@@ -61,7 +81,7 @@ class ScenarioTableController: Controller() {
         addSelectedFeaturePropertyListener()
     }
 
-    private fun buildScenarioTableRows(report: Report): List<ScenarioTableRow> {
+    private fun buildScenarioTableRows(report: Report): List<ScenarioTableRow1> {
         return report.failedFeatures.flatMap { feature ->
 
             val failedBackgroundSteps = feature.backgroundSteps.filter { it.result == Step.Result.FAILED }
@@ -71,7 +91,7 @@ class ScenarioTableController: Controller() {
                 val failedSteps = scenario.steps.filter { it.result == Step.Result.FAILED }
                 val failedHooks = scenario.hooks.filter { it.result == Step.Result.FAILED }
 
-                ScenarioTableRow(
+                ScenarioTableRow1(
                     featureName = feature.name,
                     featureTags = feature.tags.joinToString(),
                     scenarioName = scenario.name,

@@ -1,7 +1,9 @@
 package component.scenarioTable
 
 import event.RequestReportFilterData
+import javafx.scene.control.TableView
 import javafx.scene.image.Image
+import javafx.scene.input.KeyCode
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import tornadofx.*
@@ -15,6 +17,7 @@ class ScenarioTableView : View("ScenarioTableView") {
 
     override val root = tableview(controller.scenarioRowTableRowListProperty) {
         bindSelected(controller.selectedReportRowProperty)
+        selectionModel.isCellSelectionEnabled = true
 
         readonlyColumn("", ScenarioTableRow::unstable) {
             usePrefWidth = true
@@ -67,6 +70,8 @@ class ScenarioTableView : View("ScenarioTableView") {
             fontSize = 12.px
             padding = box(0.px)
         }
+
+        onKeyPressed = controller.onKeyPressed
     }
 
     private fun getStatusIconImage(unstable: Boolean): Image {
