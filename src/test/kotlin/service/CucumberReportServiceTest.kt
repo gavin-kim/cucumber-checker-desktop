@@ -48,6 +48,10 @@ class CucumberReportServiceTest {
 
     @Test
     fun `getReport - check all report has a screenshot`() {
+        val a = "I \"saasdfg\" asdgfasddfsd \"sfettweawet\" \"saasdfg\" \"safwefwe\" asfwe."
+        println(a)
+        val normalizedA = a.replace("[\"][^\"]*[\"]".toRegex(), "\"?\"")
+        println(normalizedA)
 
     }
 

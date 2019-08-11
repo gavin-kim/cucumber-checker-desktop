@@ -1,4 +1,4 @@
-package component.menu
+package component.menuBar
 
 import event.DisplayReport
 import event.ReportLoaded
@@ -9,7 +9,7 @@ import service.PersistenceService
 import tornadofx.Controller
 import tornadofx.chooseDirectory
 
-class MenuController : Controller() {
+class MenuBarController : Controller() {
 
     private val persistenceService: PersistenceService by inject()
 

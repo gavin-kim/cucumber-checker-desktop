@@ -49,6 +49,9 @@ import kotlin.collections.set
 import kotlin.collections.toMap
 import kotlin.collections.toSet
 
+private val STEP_PARAMETER_REGEX = "[\"][^\"]*[\"]".toRegex()
+private const val NORMALIZED_STEP_PARAMETER = "\"?\""
+
 class ScenarioTableController: Controller() {
 
     private lateinit var report: Report
@@ -115,8 +118,10 @@ class ScenarioTableController: Controller() {
 
             feature.failedScenarios.map { scenario ->
 
-                val failedSteps = scenario.steps.filter { it.result == Step.Result.FAILED }
                 val failedHooks = scenario.hooks.filter { it.result == Step.Result.FAILED }
+                val failedSteps = scenario.steps.filter { it.result == Step.Result.FAILED }
+
+                val firstFailedStep = getFirstFailedStep(failedHooks, failedBackgroundSteps, failedSteps)
 
                 ScenarioTableRow(
                     featureName = feature.name,
@@ -124,17 +129,29 @@ class ScenarioTableController: Controller() {
                     scenarioName = scenario.name,
                     scenarioTags = scenario.tags.joinToString(),
                     screenShotLinks = scenario.screenShotFiles.map { "${report.path}/$it" },
-                    failedSpot = when {
-                        failedBackgroundSteps.isNotEmpty() -> "Background Step"
-                        failedSteps.isNotEmpty() -> "Step"
-                        failedHooks.isNotEmpty() -> "Hook"
-                        else -> "Unknown"
-                    },
-                    failedSteps = (failedBackgroundSteps + failedSteps + failedHooks).joinToString { "${it.keyword.text} ${it.name}" },
+                    failedSpot = firstFailedStep.type.name,
+                    failedStep = normalizeStepName(firstFailedStep.name),
                     unstable = scenario.unstable
                 )
             }
         }
+    }
+
+    private fun getFirstFailedStep(failedHooks: Collection<Step>, failedBackgroundSteps: Collection<Step>, failedSteps: Collection<Step>): Step {
+        val (failedBeforeHooks, failedAfterHooks) = failedHooks
+            .partition { it.keyword == Step.Keyword.BEFORE }
+
+        return when {
+            failedBeforeHooks.isNotEmpty() -> failedAfterHooks.first()
+            failedBackgroundSteps.isNotEmpty() -> failedBackgroundSteps.first()
+            failedSteps.isNotEmpty() -> failedSteps.first()
+            failedAfterHooks.isNotEmpty() -> failedAfterHooks.first()
+            else -> throw IllegalStateException("Cannot find failed step")
+        }
+    }
+
+    private fun normalizeStepName(stepName: String): String {
+        return stepName.replace(STEP_PARAMETER_REGEX, NORMALIZED_STEP_PARAMETER)
     }
 
     private fun addSelectedFeaturePropertyListener() {

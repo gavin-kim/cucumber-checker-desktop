@@ -71,8 +71,8 @@ class ScenarioTableView : View("ScenarioTableView") {
         readonlyColumn(ScenarioTableColumn.FAILED_SPOT.label, ScenarioTableRow::failedSpot) {
             controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_SPOT, visibleProperty())
         }
-        readonlyColumn(ScenarioTableColumn.FAILED_STEPS.label, ScenarioTableRow::failedSteps) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_STEPS, visibleProperty())
+        readonlyColumn(ScenarioTableColumn.FAILED_STEP.label, ScenarioTableRow::failedStep) {
+            controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_STEP, visibleProperty())
         }
 
         style {

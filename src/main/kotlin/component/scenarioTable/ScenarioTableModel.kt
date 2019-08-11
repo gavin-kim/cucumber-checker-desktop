@@ -7,7 +7,7 @@ enum class ScenarioTableColumn(val label: String) {
     SCENARIO_TAGS("Scenario Tags"),
     SCREENSHOTS("Screenshots"),
     FAILED_SPOT("Failed Spot"),
-    FAILED_STEPS("Failed Steps")
+    FAILED_STEP("Failed Step")
 }
 
 data class ScenarioTableRow(
@@ -17,6 +17,6 @@ data class ScenarioTableRow(
     val scenarioTags: String,
     val screenShotLinks: List<String>,
     val failedSpot: String,
-    val failedSteps: String,
+    val failedStep: String,
     val unstable: Boolean
 )

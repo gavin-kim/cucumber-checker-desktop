@@ -1,30 +1,26 @@
 package component.main
 
 import component.buildSearch.BuildSearchView
-import component.menu.MenuView
+import component.menuBar.MenuBarView
 import component.report.ReportView
+import component.statusBar.StatusBarView
 import mu.KotlinLogging
 import tornadofx.View
+import tornadofx.borderpane
 import tornadofx.fitToParentSize
-import tornadofx.hbox
-import tornadofx.vbox
 
-class MainView: View("MainView") {
+class MainView : View("MainView") {
 
     private val logger = KotlinLogging.logger {}
     private val viewTitle = app.config.string("main.title", "Cucumber Checker")
 
-    override val root = vbox(2) {
+    override val root = borderpane {
         title = viewTitle
 
-        add(MenuView::class)
-
-        hbox(2) {
-            add(BuildSearchView::class)
-            add(ReportView::class)
-
-            fitToParentSize()
-        }
+        top(MenuBarView::class)
+        left(BuildSearchView::class)
+        center(ReportView::class)
+        bottom(StatusBarView::class)
     }
 
     override fun onDock() {

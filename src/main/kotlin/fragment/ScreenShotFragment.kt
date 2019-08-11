@@ -8,7 +8,7 @@ import tornadofx.imageview
 import tornadofx.stackpane
 import java.io.File
 
-class ScreenShotFragment: Fragment() {
+class ScreenShotFragment : Fragment() {
 
     val reportType: Report.Type by param()
     val link: String by param()
