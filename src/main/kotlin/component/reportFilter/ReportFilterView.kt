@@ -1,9 +1,22 @@
 package component.reportFilter
 
 import component.scenarioTable.ScenarioTableColumn
-import event.DispatchReportFilterData
 import javafx.geometry.Orientation
-import tornadofx.*
+import tornadofx.View
+import tornadofx.checkbox
+import tornadofx.field
+import tornadofx.fieldset
+import tornadofx.fold
+import tornadofx.form
+import tornadofx.hbox
+import tornadofx.listview
+import tornadofx.multiSelect
+import tornadofx.px
+import tornadofx.squeezebox
+import tornadofx.style
+import tornadofx.toObservable
+import tornadofx.usePrefHeight
+import tornadofx.usePrefWidth
 
 class ReportFilterView : View("ReportFilterView") {
 

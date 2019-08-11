@@ -1,7 +1,10 @@
 package component.scenarioTable
 
 import component.reportFilter.ReportFilterData
-import event.*
+import event.DispatchReportFilterData
+import event.DisplayReport
+import event.DisplayScenarioDetail
+import event.HideReportOverlay
 import fragment.ScreenShotFragment
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleListProperty
@@ -20,9 +23,31 @@ import model.Feature
 import model.Report
 import model.Scenario
 import model.Step
-import tornadofx.*
-import javax.sound.sampled.Clip
-import component.scenarioTable.ScenarioTableRow as ScenarioTableRow1
+import tornadofx.Controller
+import tornadofx.getProperty
+import tornadofx.getValue
+import tornadofx.listProperty
+import tornadofx.observableListOf
+import tornadofx.property
+import tornadofx.selectedValue
+import kotlin.collections.Collection
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.MutableMap
+import kotlin.collections.associateBy
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.filter
+import kotlin.collections.flatMap
+import kotlin.collections.forEach
+import kotlin.collections.isNotEmpty
+import kotlin.collections.joinToString
+import kotlin.collections.map
+import kotlin.collections.mutableMapOf
+import kotlin.collections.plus
+import kotlin.collections.set
+import kotlin.collections.toMap
+import kotlin.collections.toSet
 
 class ScenarioTableController: Controller() {
 
@@ -30,22 +55,22 @@ class ScenarioTableController: Controller() {
     private lateinit var featureMap: Map<String, Feature>
     private lateinit var scenarioMap: Map<Pair<String/*Feature Name*/, String/*Scenario Name*/>, Scenario>
 
-    private var selectedScenarioTableRow: ScenarioTableRow1 by property()
+    private var selectedScenarioTableRow: ScenarioTableRow by property()
     val selectedReportRowProperty = getProperty(ScenarioTableController::selectedScenarioTableRow)
 
-    private val scenarioTableRowList: ObservableList<ScenarioTableRow1> by listProperty(observableListOf())
-    private val filteredScenarioTableRowList: FilteredList<ScenarioTableRow1> = FilteredList(scenarioTableRowList)
+    private val scenarioTableRowList: ObservableList<ScenarioTableRow> by listProperty(observableListOf())
+    private val filteredScenarioTableRowList: FilteredList<ScenarioTableRow> = FilteredList(scenarioTableRowList)
     val scenarioRowTableRowListProperty = SimpleListProperty(filteredScenarioTableRowList)
 
     private val columnVisiblePropertyMap: MutableMap<ScenarioTableColumn, BooleanProperty> = mutableMapOf()
 
     val onKeyPressed = EventHandler<KeyEvent> {
         when {
-            it.isControlDown && it.code === KeyCode.C -> copySelectionToClipboard(it.source as TableView<ScenarioTableRow1>)
+            it.isControlDown && it.code === KeyCode.C -> copySelectionToClipboard(it.source as TableView<ScenarioTableRow>)
         }
     }
 
-    private fun copySelectionToClipboard(tableView: TableView<ScenarioTableRow1>) {
+    private fun copySelectionToClipboard(tableView: TableView<ScenarioTableRow>) {
         val clipboardContent = ClipboardContent()
 
         clipboardContent.putString(tableView.selectedValue.toString())
@@ -53,8 +78,10 @@ class ScenarioTableController: Controller() {
     }
 
     fun onScreenShotLinkClick(link: String) = EventHandler<ActionEvent> {
-        find<ScreenShotFragment>(ScreenShotFragment::link to link)
-            .openModal(StageStyle.UNDECORATED, Modality.NONE, resizable = true)
+        find<ScreenShotFragment>(
+            ScreenShotFragment::reportType to report.type,
+            ScreenShotFragment::link to link
+        ).openModal(StageStyle.UNDECORATED, Modality.NONE, resizable = true)
     }
 
     fun setColumnVisibleProperty(column: ScenarioTableColumn, visibleProperty: BooleanProperty) {
@@ -81,7 +108,7 @@ class ScenarioTableController: Controller() {
         addSelectedFeaturePropertyListener()
     }
 
-    private fun buildScenarioTableRows(report: Report): List<ScenarioTableRow1> {
+    private fun buildScenarioTableRows(report: Report): List<ScenarioTableRow> {
         return report.failedFeatures.flatMap { feature ->
 
             val failedBackgroundSteps = feature.backgroundSteps.filter { it.result == Step.Result.FAILED }
@@ -91,12 +118,12 @@ class ScenarioTableController: Controller() {
                 val failedSteps = scenario.steps.filter { it.result == Step.Result.FAILED }
                 val failedHooks = scenario.hooks.filter { it.result == Step.Result.FAILED }
 
-                ScenarioTableRow1(
+                ScenarioTableRow(
                     featureName = feature.name,
                     featureTags = feature.tags.joinToString(),
                     scenarioName = scenario.name,
                     scenarioTags = scenario.tags.joinToString(),
-                    screenShotLinks = scenario.screenShotFiles.map { "${report.buildUrl}/cucumber-html-reports/$it" },
+                    screenShotLinks = scenario.screenShotFiles.map { "${report.path}/$it" },
                     failedSpot = when {
                         failedBackgroundSteps.isNotEmpty() -> "Background Step"
                         failedSteps.isNotEmpty() -> "Step"

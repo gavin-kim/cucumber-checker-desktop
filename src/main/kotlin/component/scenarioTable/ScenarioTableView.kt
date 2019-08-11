@@ -1,19 +1,28 @@
 package component.scenarioTable
 
 import event.RequestReportFilterData
-import javafx.scene.control.TableView
 import javafx.scene.image.Image
-import javafx.scene.input.KeyCode
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import tornadofx.*
+import tornadofx.View
+import tornadofx.bindSelected
+import tornadofx.box
+import tornadofx.fitToParentSize
+import tornadofx.hbox
+import tornadofx.hyperlink
+import tornadofx.imageview
+import tornadofx.px
+import tornadofx.readonlyColumn
+import tornadofx.style
+import tornadofx.tableview
+import tornadofx.usePrefWidth
 
 class ScenarioTableView : View("ScenarioTableView") {
 
     private val controller: ScenarioTableController by inject()
 
-    private val scenarioFailedImagePath = app.config.string("scenario.failed.image.path")
-    private val scenarioUnstableImagePath = app.config.string("scenario.unstable.image.path")
+    private val failedImagePath = app.config.string("scenario.table.failed.image.path")
+    private val unstableImagePath = app.config.string("scenario.table.unstable.image.path")
 
     override val root = tableview(controller.scenarioRowTableRowListProperty) {
         bindSelected(controller.selectedReportRowProperty)
@@ -75,7 +84,7 @@ class ScenarioTableView : View("ScenarioTableView") {
     }
 
     private fun getStatusIconImage(unstable: Boolean): Image {
-        return Image(if (unstable) scenarioUnstableImagePath else scenarioFailedImagePath, 16.0, 16.0, true, true)
+        return Image(if (unstable) unstableImagePath else failedImagePath, 16.0, 16.0, true, true)
     }
 
     override fun onDock() {

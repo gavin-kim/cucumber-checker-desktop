@@ -1,7 +1,7 @@
 package component.buildSearch
 
-import event.DisplayReport
 import event.HideReportOverlay
+import event.ReportLoaded
 import event.ShowReportOverlay
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
@@ -14,11 +14,19 @@ import model.Build
 import model.View
 import mu.KotlinLogging
 import service.CucumberReportService
-import tornadofx.*
+import tornadofx.Controller
+import tornadofx.fail
+import tornadofx.finally
+import tornadofx.getProperty
+import tornadofx.getValue
+import tornadofx.listProperty
+import tornadofx.observableListOf
+import tornadofx.property
+import tornadofx.success
 
 class BuildSearchController: Controller() {
 
-    private val logger = KotlinLogging.logger { }
+    private val logger = KotlinLogging.logger {}
     private val cucumberReportService: CucumberReportService by inject()
 
     private var selectedJob: String by property()
@@ -59,10 +67,9 @@ class BuildSearchController: Controller() {
 
         runAsync {
             fire(ShowReportOverlay())
-            logger.info("Selected Job: $selectedJob, SelectedBuild: ${selectedBuild.id}")
-            cucumberReportService.getReport(selectedJob, selectedBuild.id)
+            cucumberReportService.getReport(selectedBuild)
         } success {
-            fire(DisplayReport(it))
+            fire(ReportLoaded(it))
         } fail {
             logger.error(it) {}
         } finally {

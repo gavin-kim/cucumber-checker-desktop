@@ -1,6 +1,11 @@
 package service
 
-import model.*
+import model.Build
+import model.Feature
+import model.Report
+import model.Scenario
+import model.Step
+import model.View
 import mu.KotlinLogging
 import org.apache.http.HttpStatus
 import org.jsoup.Jsoup
@@ -42,7 +47,7 @@ class CucumberReportService : Controller() {
                 .let { it.select("userId").text() to it.select("userName").text() }
 
             Build(
-                url = "$jobUrl/$id",
+                job = job,
                 id = id,
                 name = name,
                 result = result,
@@ -66,19 +71,20 @@ class CucumberReportService : Controller() {
         }
     }
 
-    fun getReport(jobName: String, buildId: Int): Report {
-        val buildUrl = "$serverUrl/job/$jobName/$buildId"
+    fun getReport(build: Build): Report {
+        val buildUrl = "$serverUrl/job/${build.job}/${build.id}"
 
         val scenarioFailedCountMapByFeatureName = getScenarioFailedCountMapByFeatureName(buildUrl)
 
         val reportHtmlByFeature = getReportHtmlByFeature(buildUrl)
+        val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS"
 
         val failedFeatures = scenarioFailedCountMapByFeatureName.map { (featureName, scenarioFailedCountMap) ->
-            val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS/${reportHtmlByFeature[featureName]}"
-            getFailedFeature(reportUrl, featureName, scenarioFailedCountMap)
+            val featureUrl = "$reportUrl/${reportHtmlByFeature[featureName]}"
+            getFailedFeature(featureUrl, featureName, scenarioFailedCountMap)
         }
 
-        return Report(jobName, buildId, buildUrl, failedFeatures)
+        return Report(build, Report.Type.WEB, reportUrl, failedFeatures)
     }
 
 
@@ -115,9 +121,9 @@ class CucumberReportService : Controller() {
             }.toMap()
     }
 
-    private fun getFailedFeature(reportUrl: String, featureName: String, scenarioFailedCountMap: Map<String, Int>): Feature {
+    private fun getFailedFeature(featureUrl: String, featureName: String, scenarioFailedCountMap: Map<String, Int>): Feature {
 
-        val doc = Jsoup.connect(reportUrl).maxBodySize(0).get()
+        val doc = Jsoup.connect(featureUrl).maxBodySize(0).get()
 
         val elements = doc.body().select("div.feature > div.elements > div.element")
         val elementsByKeyword = groupElementsByKeyword(elements)

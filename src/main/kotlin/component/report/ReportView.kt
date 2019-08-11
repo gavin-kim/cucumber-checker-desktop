@@ -3,7 +3,12 @@ package component.report
 import component.reportFilter.ReportFilterView
 import component.scenarioDetail.ScenarioDetailView
 import component.scenarioTable.ScenarioTableView
-import tornadofx.*
+import tornadofx.MaskPane
+import tornadofx.View
+import tornadofx.fitToParentSize
+import tornadofx.replaceWith
+import tornadofx.stackpane
+import tornadofx.vbox
 
 class ReportView : View("ReportView") {
 

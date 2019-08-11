@@ -5,7 +5,12 @@ import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import model.Scenario
 import model.Step
-import tornadofx.*
+import tornadofx.Controller
+import tornadofx.getProperty
+import tornadofx.getValue
+import tornadofx.listProperty
+import tornadofx.observableListOf
+import tornadofx.property
 
 class ScenarioDetailController : Controller() {
 

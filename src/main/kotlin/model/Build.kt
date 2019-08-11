@@ -1,7 +1,9 @@
 package model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 data class Build(
-    val url: String,
+    val job: String,
     val id: Int,
     val name: String,
     val result: Result,
@@ -12,6 +14,7 @@ data class Build(
     val userId: String,
     val userName: String
 ) {
+    @JsonIgnore
     val text =
         if (userId.isBlank()) "$id, $name"
         else "$id, $name ($userId, $userName)"

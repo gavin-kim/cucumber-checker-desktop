@@ -48,9 +48,7 @@ class CucumberReportServiceTest {
 
     @Test
     fun `getReport - check all report has a screenshot`() {
-        val report = service.getReport("ExecuteCucumberRun-Oracle-Parallel", 16416)
 
-        prettyPrint(report)
     }
 
 

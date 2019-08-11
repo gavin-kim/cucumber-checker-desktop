@@ -1,8 +1,13 @@
 package model
 
 data class Report(
-    val jobName: String,
-    val buildId: Int,
-    val buildUrl: String,
+    val build: Build,
+    val type: Type,
+    val path: String,
     val failedFeatures: List<Feature>
-)
+) {
+    enum class Type {
+        FILE,
+        WEB
+    }
+}

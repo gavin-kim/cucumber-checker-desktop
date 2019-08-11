@@ -4,7 +4,21 @@ import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import model.Build
 import mu.KotlinLogging
-import tornadofx.*
+import tornadofx.View
+import tornadofx.bindSelected
+import tornadofx.button
+import tornadofx.combobox
+import tornadofx.fitToParentHeight
+import tornadofx.imageview
+import tornadofx.insets
+import tornadofx.label
+import tornadofx.listview
+import tornadofx.multiSelect
+import tornadofx.style
+import tornadofx.textfield
+import tornadofx.useMaxWidth
+import tornadofx.usePrefWidth
+import tornadofx.vbox
 
 class BuildSearchView : View("BuildSearchView") {
 
