@@ -1,9 +1,10 @@
 package component.scenarioTable
 
 import component.reportFilter.ReportFilterData
+import event.ClearScenarioDetails
 import event.DispatchReportFilterData
 import event.DisplayReport
-import event.DisplayScenarioDetail
+import event.DisplayScenarioDetails
 import event.HideReportOverlay
 import fragment.ScreenShotFragment
 import javafx.beans.property.BooleanProperty
@@ -44,7 +45,6 @@ import kotlin.collections.isNotEmpty
 import kotlin.collections.joinToString
 import kotlin.collections.map
 import kotlin.collections.mutableMapOf
-import kotlin.collections.plus
 import kotlin.collections.set
 import kotlin.collections.toMap
 import kotlin.collections.toSet
@@ -100,6 +100,7 @@ class ScenarioTableController: Controller() {
             val scenarioTableRows = buildScenarioTableRows(it.report)
             scenarioTableRowList.setAll(scenarioTableRows)
 
+            fire(ClearScenarioDetails())
             fire(HideReportOverlay())
         }
 
@@ -160,7 +161,7 @@ class ScenarioTableController: Controller() {
                 val feature = checkNotNull(featureMap[newValue.featureName])
                 val scenario = checkNotNull(scenarioMap[newValue.featureName to newValue.scenarioName])
 
-                fire(DisplayScenarioDetail(scenario, feature.backgroundSteps))
+                fire(DisplayScenarioDetails(scenario, feature.backgroundSteps))
             }
         }
     }

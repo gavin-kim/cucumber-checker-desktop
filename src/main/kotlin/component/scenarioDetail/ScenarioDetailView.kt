@@ -4,19 +4,7 @@ import javafx.geometry.Pos
 import javafx.scene.control.TreeItem
 import javafx.scene.paint.Color
 import model.Step
-import tornadofx.View
-import tornadofx.c
-import tornadofx.cellFormat
-import tornadofx.fitToParentSize
-import tornadofx.gridpane
-import tornadofx.label
-import tornadofx.paddingAll
-import tornadofx.populate
-import tornadofx.row
-import tornadofx.stackpane
-import tornadofx.style
-import tornadofx.treeview
-import tornadofx.vbox
+import tornadofx.*
 
 class ScenarioDetailView : View("ScenarioDetailView") {
 

@@ -1,6 +1,7 @@
 package component.scenarioDetail
 
-import event.DisplayScenarioDetail
+import event.ClearScenarioDetails
+import event.DisplayScenarioDetails
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import model.Scenario
@@ -13,8 +14,6 @@ import tornadofx.observableListOf
 import tornadofx.property
 
 class ScenarioDetailController : Controller() {
-
-    private lateinit var scenario: Scenario
 
     private val scenarioGroupList: ObservableList<ScenarioDetailGroup> by listProperty(observableListOf())
     val scenarioGroupListProperty = SimpleListProperty(scenarioGroupList)
@@ -35,30 +34,46 @@ class ScenarioDetailController : Controller() {
     val updatedProperty = getProperty(ScenarioDetailController::updated)
 
     init {
-        subscribe<DisplayScenarioDetail> {
-            scenarioGroupList.setAll(
-                ScenarioDetailGroup.BEFORE_HOOKS,
-                ScenarioDetailGroup.BACKGROUND_STEPS,
-                ScenarioDetailGroup.STEPS,
-                ScenarioDetailGroup.AFTER_HOOKS
-            )
+        scenarioGroupList.setAll(
+            ScenarioDetailGroup.BEFORE_HOOKS,
+            ScenarioDetailGroup.BACKGROUND_STEPS,
+            ScenarioDetailGroup.STEPS,
+            ScenarioDetailGroup.AFTER_HOOKS
+        )
 
-            beforeHookList.setAll(
-                it.scenario.hooks
-                    .filter { hook -> hook.keyword == Step.Keyword.BEFORE }
-                    .map { hook -> buildScenarioDetailModel(hook) }
-            )
-
-            afterHookList.setAll(
-                it.scenario.hooks
-                    .filter { hook -> hook.keyword == Step.Keyword.AFTER }
-                    .map { hook -> buildScenarioDetailModel(hook) }
-            )
-
-            backgroundStepList.setAll(it.backgroundSteps.map { step -> buildScenarioDetailModel(step) })
-            stepList.setAll(it.scenario.steps.map { step -> buildScenarioDetailModel(step) })
-            updated = !updated
+        subscribe<DisplayScenarioDetails> {
+            updateScenario(it.scenario, it.backgroundSteps)
         }
+
+        subscribe<ClearScenarioDetails> {
+            clearScenario()
+        }
+    }
+
+    private fun updateScenario(scenario: Scenario, backgroundSteps: Collection<Step>) {
+        beforeHookList.setAll(
+            scenario.hooks
+                .filter { hook -> hook.keyword == Step.Keyword.BEFORE }
+                .map { hook -> buildScenarioDetailModel(hook) }
+        )
+
+        afterHookList.setAll(
+            scenario.hooks
+                .filter { hook -> hook.keyword == Step.Keyword.AFTER }
+                .map { hook -> buildScenarioDetailModel(hook) }
+        )
+
+        backgroundStepList.setAll(backgroundSteps.map { step -> buildScenarioDetailModel(step) })
+        stepList.setAll(scenario.steps.map { step -> buildScenarioDetailModel(step) })
+        updated = !updated
+    }
+
+    private fun clearScenario() {
+        beforeHookList.clear()
+        afterHookList.clear()
+        backgroundStepList.clear()
+        stepList.clear()
+        updated = !updated
     }
 
     private fun buildScenarioDetailModel(step: Step): ScenarioDetail {

@@ -19,7 +19,7 @@ private const val TEST_REPORT = "testReport"
 private const val SCENARIO = "Scenario"
 private const val BACKGROUND = "Background"
 private const val XML_BUILD_SEARCH_QUERY = "xml?tree=builds[building,id,displayName,result,duration,timestamp,actions[causes[userId,userName]]]"
-private const val XML_FAILED_RESULT_QUERY = "xml?tree=suites[cases[className,name,statusBar]]&xpath=/testResult/suite/case/statusBar[contains(text(),'REGRESSION') or contains(text(),'FAILED')]/..&wrapper=failedResult"
+private const val XML_FAILED_RESULT_QUERY = "xml?tree=suites[cases[className,name,status]]&xpath=/testResult/suite/case/status[contains(text(),'REGRESSION') or contains(text(),'FAILED')]/..&wrapper=failedResult"
 
 class CucumberReportService : Controller() {
 
