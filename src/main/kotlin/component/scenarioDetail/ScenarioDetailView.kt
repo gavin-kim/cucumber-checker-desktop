@@ -10,6 +10,14 @@ class ScenarioDetailView : View("ScenarioDetailView") {
 
     private val controller: ScenarioDetailController by inject()
 
+    private val stepColorPassed = app.config.string("scenario.detail.step.color.passed", "#89DE9C")
+    private val stepColorFailed = app.config.string("scenario.detail.step.color.failed", "#F8928D")
+    private val stepColorSkipped = app.config.string("scenario.detail.step.color.skipped", "#84A8FA")
+    private val stepColorUndefined = app.config.string("scenario.detail.step.color.undefined", "#F9BA7C")
+    private val stepColorPending = app.config.string("scenario.detail.step.color.pending", "#F5F399")
+    private val stepColorDefault = app.config.string("scenario.detail.step.color.default", "#D3D3D3")
+
+
     override val root = treeview<Any> {
         root = TreeItem("Details")
 
@@ -100,10 +108,12 @@ class ScenarioDetailView : View("ScenarioDetailView") {
 
     private fun getBackGroundColor(result: Step.Result): Color {
         return when (result) {
-            Step.Result.PASSED -> c("#79FEAA")
-            Step.Result.FAILED -> c("#FE7D7D")
-            Step.Result.SKIPPED -> c("#68B8FE")
-            else -> c("#DEF972")
+            Step.Result.PASSED -> c(stepColorPassed)
+            Step.Result.FAILED -> c(stepColorFailed)
+            Step.Result.SKIPPED -> c(stepColorSkipped)
+            Step.Result.UNDEFINED -> c(stepColorUndefined)
+            Step.Result.PENDING -> c(stepColorPending)
+            else -> c(stepColorDefault)
         }
     }
 

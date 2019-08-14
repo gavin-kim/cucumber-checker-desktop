@@ -30,6 +30,7 @@ data class Step(
         FAILED("failed"),
         UNDEFINED("undefined"),
         SKIPPED("skipped"),
+        PENDING("pending"),
         UNKNOWN("")
     }
 }

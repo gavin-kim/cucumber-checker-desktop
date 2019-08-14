@@ -81,8 +81,10 @@ class BuildSearchController: Controller() {
     init {
         val trunkJobs = cucumberReportService.getCucumberJobs(View.MANUAL_VALIDATION_ON_TRUNK)
         val maintenanceJobs = cucumberReportService.getCucumberJobs(View.MANUAL_VALIDATION_ON_MAINT)
+        val cucumberUIJobs = cucumberReportService.getCucumberJobs(View.CUCUMBER_UI_AUTOMATION)
 
-        jobList.setAll(trunkJobs + maintenanceJobs)
+        jobList.setAll(trunkJobs + maintenanceJobs + cucumberUIJobs)
+        jobList.sort()
 
         addBuildFilterValuePropertyListener()
     }

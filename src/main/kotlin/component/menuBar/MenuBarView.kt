@@ -14,8 +14,8 @@ class MenuBarView : View("MenuBarView") {
 
     private val barController: MenuBarController by inject()
 
-    private val loadImagePath = app.config.string("menuBar.load.image.path")
-    private val saveImagePath = app.config.string("menuBar.save.image.path")
+    private val loadImagePath = app.config.string("menu.bar.load.image.path")
+    private val saveImagePath = app.config.string("menu.bar.save.image.path")
 
     override val root = listmenu(orientation = Orientation.HORIZONTAL) {
         item(graphic = imageview(Image(loadImagePath, 24.0, 24.0, true, true))) {

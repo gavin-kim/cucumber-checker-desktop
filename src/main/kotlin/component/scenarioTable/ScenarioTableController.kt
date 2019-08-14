@@ -115,14 +115,12 @@ class ScenarioTableController: Controller() {
     private fun buildScenarioTableRows(report: Report): List<ScenarioTableRow> {
         return report.failedFeatures.flatMap { feature ->
 
-            val failedBackgroundSteps = feature.backgroundSteps.filter { it.result == Step.Result.FAILED }
+            val failedBackgroundSteps = feature.backgroundSteps
+                .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
 
             feature.failedScenarios.map { scenario ->
 
-                val failedHooks = scenario.hooks.filter { it.result == Step.Result.FAILED }
-                val failedSteps = scenario.steps.filter { it.result == Step.Result.FAILED }
-
-                val firstFailedStep = getFirstFailedStep(failedHooks, failedBackgroundSteps, failedSteps)
+                val firstFailedStep = getFirstFailedStep(failedBackgroundSteps, scenario)
 
                 ScenarioTableRow(
                     featureName = feature.name,
@@ -138,8 +136,13 @@ class ScenarioTableController: Controller() {
         }
     }
 
-    private fun getFirstFailedStep(failedHooks: Collection<Step>, failedBackgroundSteps: Collection<Step>, failedSteps: Collection<Step>): Step {
-        val (failedBeforeHooks, failedAfterHooks) = failedHooks
+    private fun getFirstFailedStep(failedBackgroundSteps: Collection<Step>, scenario: Scenario): Step {
+
+        val failedSteps = scenario.steps
+            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
+
+        val (failedBeforeHooks, failedAfterHooks) = scenario.hooks
+            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
             .partition { it.keyword == Step.Keyword.BEFORE }
 
         return when {
