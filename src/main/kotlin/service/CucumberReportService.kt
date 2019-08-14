@@ -5,7 +5,6 @@ import model.Feature
 import model.Report
 import model.Scenario
 import model.Step
-import model.View
 import mu.KotlinLogging
 import org.apache.http.HttpStatus
 import org.jsoup.Jsoup
@@ -20,6 +19,7 @@ private const val SCENARIO = "Scenario"
 private const val BACKGROUND = "Background"
 private const val XML_BUILD_SEARCH_QUERY = "xml?tree=builds[building,id,displayName,result,duration,timestamp,actions[causes[userId,userName]]]"
 private const val XML_FAILED_RESULT_QUERY = "xml?tree=suites[cases[className,name,status]]&xpath=/testResult/suite/case/status[contains(text(),'REGRESSION') or contains(text(),'FAILED')]/..&wrapper=failedResult"
+private const val XML_JOB_NAMES_QUERY = "xml?tree=jobs[name]"
 
 class CucumberReportService : Controller() {
 
@@ -233,8 +233,8 @@ class CucumberReportService : Controller() {
         return step.select("table.step-arguments > tbody > tr").map { tr -> tr.select("td").eachText() }
     }
 
-    fun getCucumberJobs(view: View): List<String> {
-        val url = "$serverUrl/view/${view.viewName}/api/xml"
+    fun getCucumberJobs(): List<String> {
+        val url = "$serverUrl/view/All/api/$XML_JOB_NAMES_QUERY"
 
         val xml = Jsoup.connect(url).maxBodySize(0).get()
 

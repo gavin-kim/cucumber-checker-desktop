@@ -11,7 +11,6 @@ import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.ComboBox
 import model.Build
-import model.View
 import mu.KotlinLogging
 import service.CucumberReportService
 import tornadofx.Controller
@@ -79,12 +78,8 @@ class BuildSearchController: Controller() {
     }
 
     init {
-        val trunkJobs = cucumberReportService.getCucumberJobs(View.MANUAL_VALIDATION_ON_TRUNK)
-        val maintenanceJobs = cucumberReportService.getCucumberJobs(View.MANUAL_VALIDATION_ON_MAINT)
-        val cucumberUIJobs = cucumberReportService.getCucumberJobs(View.CUCUMBER_UI_AUTOMATION)
-
-        jobList.setAll(trunkJobs + maintenanceJobs + cucumberUIJobs)
-        jobList.sort()
+        val jobs = cucumberReportService.getCucumberJobs()
+        jobList.setAll(jobs.sorted())
 
         addBuildFilterValuePropertyListener()
     }
