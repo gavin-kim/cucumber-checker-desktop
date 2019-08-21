@@ -115,12 +115,9 @@ class ScenarioTableController: Controller() {
     private fun buildScenarioTableRows(report: Report): List<ScenarioTableRow> {
         return report.failedFeatures.flatMap { feature ->
 
-            val failedBackgroundSteps = feature.backgroundSteps
-                .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
-
             feature.failedScenarios.map { scenario ->
 
-                val firstFailedStep = getFirstFailedStep(failedBackgroundSteps, scenario)
+                val firstFailedStep = getFirstFailedStep(scenario)
 
                 ScenarioTableRow(
                     featureName = feature.name,
@@ -136,14 +133,17 @@ class ScenarioTableController: Controller() {
         }
     }
 
-    private fun getFirstFailedStep(failedBackgroundSteps: Collection<Step>, scenario: Scenario): Step {
-
-        val failedSteps = scenario.steps
-            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
+    private fun getFirstFailedStep(scenario: Scenario): Step {
 
         val (failedBeforeHooks, failedAfterHooks) = scenario.hooks
             .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
             .partition { it.keyword == Step.Keyword.BEFORE }
+
+        val failedBackgroundSteps = scenario.backgroundSteps
+            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
+
+        val failedSteps = scenario.steps
+            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
 
         return when {
             failedBeforeHooks.isNotEmpty() -> failedAfterHooks.first()
@@ -164,7 +164,7 @@ class ScenarioTableController: Controller() {
                 val feature = checkNotNull(featureMap[newValue.featureName])
                 val scenario = checkNotNull(scenarioMap[newValue.featureName to newValue.scenarioName])
 
-                fire(DisplayScenarioDetails(scenario, feature.backgroundSteps))
+                fire(DisplayScenarioDetails(scenario))
             }
         }
     }

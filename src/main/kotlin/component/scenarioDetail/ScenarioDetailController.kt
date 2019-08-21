@@ -42,7 +42,7 @@ class ScenarioDetailController : Controller() {
         )
 
         subscribe<DisplayScenarioDetails> {
-            updateScenario(it.scenario, it.backgroundSteps)
+            updateScenario(it.scenario)
         }
 
         subscribe<ClearScenarioDetails> {
@@ -50,20 +50,13 @@ class ScenarioDetailController : Controller() {
         }
     }
 
-    private fun updateScenario(scenario: Scenario, backgroundSteps: Collection<Step>) {
-        beforeHookList.setAll(
-            scenario.hooks
-                .filter { hook -> hook.keyword == Step.Keyword.BEFORE }
-                .map { hook -> buildScenarioDetailModel(hook) }
-        )
+    private fun updateScenario(scenario: Scenario) {
 
-        afterHookList.setAll(
-            scenario.hooks
-                .filter { hook -> hook.keyword == Step.Keyword.AFTER }
-                .map { hook -> buildScenarioDetailModel(hook) }
-        )
+        val (beforeHooks, afterHooks) = scenario.hooks.partition { hook -> hook.keyword == Step.Keyword.BEFORE }
 
-        backgroundStepList.setAll(backgroundSteps.map { step -> buildScenarioDetailModel(step) })
+        beforeHookList.setAll(beforeHooks.map { hook -> buildScenarioDetailModel(hook) })
+        afterHookList.setAll(afterHooks.map { hook -> buildScenarioDetailModel(hook) })
+        backgroundStepList.setAll(scenario.backgroundSteps.map { step -> buildScenarioDetailModel(step) })
         stepList.setAll(scenario.steps.map { step -> buildScenarioDetailModel(step) })
         updated = !updated
     }

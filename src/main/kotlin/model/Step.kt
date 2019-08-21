@@ -11,7 +11,6 @@ data class Step(
 ) {
     enum class Type {
         HOOK,
-        BACKGROUND_STEP,
         STEP
     }
 

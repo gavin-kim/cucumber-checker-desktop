@@ -5,4 +5,4 @@ import model.Step
 import tornadofx.EventBus
 import tornadofx.FXEvent
 
-class DisplayScenarioDetails(val scenario: Scenario, val backgroundSteps: List<Step>) : FXEvent(EventBus.RunOn.ApplicationThread)
+class DisplayScenarioDetails(val scenario: Scenario) : FXEvent(EventBus.RunOn.ApplicationThread)

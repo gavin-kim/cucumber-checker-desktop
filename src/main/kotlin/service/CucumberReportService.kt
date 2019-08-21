@@ -76,12 +76,13 @@ class CucumberReportService : Controller() {
 
         val scenarioFailedCountMapByFeatureName = getScenarioFailedCountMapByFeatureName(buildUrl)
 
-        val reportHtmlByFeature = getReportHtmlByFeature(buildUrl)
+        val htmlFilesByFeatureName = getHtmlFilesByFeatureName(buildUrl)
         val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS"
 
-        val failedFeatures = scenarioFailedCountMapByFeatureName.map { (featureName, scenarioFailedCountMap) ->
-            val featureUrl = "$reportUrl/${reportHtmlByFeature[featureName]}"
-            getFailedFeature(featureUrl, featureName, scenarioFailedCountMap)
+        val failedFeatures = scenarioFailedCountMapByFeatureName.flatMap { (featureName, scenarioFailedCountMap) ->
+            htmlFilesByFeatureName.getOrElse(featureName) { emptyList() }.map { htmlFile ->
+                getFailedFeature("$reportUrl/$htmlFile", featureName, scenarioFailedCountMap)
+            }
         }
 
         return Report(build, Report.Type.WEB, reportUrl, failedFeatures)
@@ -104,7 +105,7 @@ class CucumberReportService : Controller() {
             .mapValues { (_, value) -> value.toMap() }
     }
 
-    private fun getReportHtmlByFeature(buildUrl: String): Map<String, String> {
+    private fun getHtmlFilesByFeatureName(buildUrl: String): Map<String, List<String>> {
         val response = Jsoup.connect("$buildUrl/$CUCUMBER_HTML_REPORTS/$OVERVIEW_FEATURES")
             .maxBodySize(0)
             .ignoreHttpErrors(true)
@@ -118,7 +119,7 @@ class CucumberReportService : Controller() {
             .map { failedFeatureReport ->
                 val tagColumn = failedFeatureReport.child(0)
                 tagColumn.text() to tagColumn.select("a").attr("href")
-            }.toMap()
+            }.groupBy({ it.first }, { it.second })
     }
 
     private fun getFailedFeature(featureUrl: String, featureName: String, scenarioFailedCountMap: Map<String, Int>): Feature {
@@ -126,48 +127,43 @@ class CucumberReportService : Controller() {
         val doc = Jsoup.connect(featureUrl).maxBodySize(0).get()
 
         val elements = doc.body().select("div.feature > div.elements > div.element")
-        val elementsByKeyword = groupElementsByKeyword(elements)
 
         val featureTags = doc.body().select("div.feature > div.tags > a").eachText()
+        val failedScenarios = getFailedScenarios(elements, scenarioFailedCountMap)
 
-        val backgroundSteps =
-            if (elementsByKeyword.contains(BACKGROUND)) getSteps(Step.Type.BACKGROUND_STEP, elementsByKeyword.getValue(BACKGROUND).first())
-            else emptyList()
-
-        val failedScenarios =
-            if (elementsByKeyword.contains(SCENARIO)) getFailedScenarios(elementsByKeyword.getValue(SCENARIO), scenarioFailedCountMap)
-            else emptyList()
-
-        return Feature(featureName, featureTags.toSet(), failedScenarios, backgroundSteps)
-    }
-
-    private fun groupElementsByKeyword(elements: List<Element>): Map<String, List<Element>> {
-        return elements.groupBy { element ->
-            element.select("span.collapsable-control > div.brief > span.keyword").text().trim()
-        }
+        return Feature(featureName, featureTags.toSet(), failedScenarios)
     }
 
     private fun getFailedScenarios(elements: List<Element>, scenarioFailedCountMap: Map<String, Int>): List<Scenario> {
+
         val failedScenarios = mutableListOf<Scenario>()
 
-        elements.forEach { element ->
-            val scenarioName = element.selectFirst("span.name").text()
+        val scenarioElements = elements.filter { getElementKeyword(it) == SCENARIO }
 
-            if (scenarioFailedCountMap.contains(scenarioName)) {
+        scenarioElements.forEach { element ->
+            val scenarioName = element.selectFirst("span.name").text()
+            val isFailedScenario = element.select("span > div.brief").hasClass("failed")
+
+            if (scenarioFailedCountMap.contains(scenarioName) && isFailedScenario) {
                 val scenarioTags = element.select("div.tags > a").eachText()
 
                 val hooks = getHooks(element)
-                val steps = getSteps(Step.Type.STEP, element)
+                val backgroundSteps = getBackgroundSteps(element)
+                val steps = getSteps(element)
                 val screenShotLinks = getScreenShotLinks(element)
                 val unstable = scenarioFailedCountMap.getValue(scenarioName) < 2
 
-                val scenario = Scenario(scenarioTags.toSet(), scenarioName, hooks, steps, screenShotLinks, unstable)
+                val scenario = Scenario(scenarioTags.distinct(), scenarioName, hooks, backgroundSteps, steps, screenShotLinks, unstable)
 
                 failedScenarios.add(scenario)
             }
         }
 
         return failedScenarios
+    }
+
+    private fun getElementKeyword(element: Element): String {
+        return element.select("span.collapsable-control > div.brief > span.keyword").text().trim()
     }
 
     private fun getScreenShotLinks(element: Element): List<String> {
@@ -193,7 +189,17 @@ class CucumberReportService : Controller() {
         }
     }
 
-    private fun getSteps(type: Step.Type, element: Element): List<Step> {
+    private fun getBackgroundSteps(element: Element): List<Step> {
+        val previousElement = element.previousElementSibling()
+
+        return if (previousElement == null || getElementKeyword(previousElement) != BACKGROUND) {
+            emptyList()
+        } else {
+            getSteps(previousElement)
+        }
+    }
+
+    private fun getSteps(element: Element): List<Step> {
         return element.select("div.step").map { step ->
             val brief = step.selectFirst("div.brief")
 
@@ -211,7 +217,7 @@ class CucumberReportService : Controller() {
             val arguments = getStepArguments(step)
             val messages = if (result == Step.Result.FAILED) getStepMessages(step) else emptyList()
 
-            Step(type, keyword, name, duration, result, messages, arguments)
+            Step(Step.Type.STEP, keyword, name, duration, result, messages, arguments)
         }
     }
 
