@@ -55,8 +55,6 @@ private const val NORMALIZED_STEP_PARAMETER = "\"?\""
 class ScenarioTableController: Controller() {
 
     private lateinit var report: Report
-    private lateinit var featureMap: Map<String, Feature>
-    private lateinit var scenarioMap: Map<Pair<String/*Feature Name*/, String/*Scenario Name*/>, Scenario>
 
     private var selectedScenarioTableRow: ScenarioTableRow by property()
     val selectedReportRowProperty = getProperty(ScenarioTableController::selectedScenarioTableRow)
@@ -94,8 +92,6 @@ class ScenarioTableController: Controller() {
     init {
         subscribe<DisplayReport> {
             report = it.report
-            featureMap = getFeatureMap(it.report)
-            scenarioMap = getScenarioMap(it.report)
 
             val scenarioTableRows = buildScenarioTableRows(it.report)
             scenarioTableRowList.setAll(scenarioTableRows)
@@ -120,6 +116,7 @@ class ScenarioTableController: Controller() {
                 val firstFailedStep = getFirstFailedStep(scenario)
 
                 ScenarioTableRow(
+                    scenario = scenario,
                     featureName = feature.name,
                     featureTags = feature.tags.joinToString(),
                     scenarioName = scenario.name,
@@ -161,22 +158,9 @@ class ScenarioTableController: Controller() {
     private fun addSelectedFeaturePropertyListener() {
         selectedReportRowProperty.addListener { _, oldValue, newValue ->
             if (newValue != null && oldValue != newValue) {
-                val feature = checkNotNull(featureMap[newValue.featureName])
-                val scenario = checkNotNull(scenarioMap[newValue.featureName to newValue.scenarioName])
-
-                fire(DisplayScenarioDetails(scenario))
+                fire(DisplayScenarioDetails(newValue.scenario))
             }
         }
-    }
-
-    private fun getFeatureMap(report: Report): Map<String, Feature> {
-        return report.failedFeatures.associateBy { it.name }
-    }
-
-    private fun getScenarioMap(report: Report): Map<Pair<String, String>, Scenario> {
-        return report.failedFeatures.flatMap { feature ->
-            feature.failedScenarios.map { scenario ->  (feature.name to scenario.name) to scenario }
-        }.toMap()
     }
 
     private fun updateFilteredScenarioTableRowList(reportFilterData: ReportFilterData) {

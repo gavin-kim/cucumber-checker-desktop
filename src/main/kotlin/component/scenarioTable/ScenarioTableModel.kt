@@ -1,5 +1,7 @@
 package component.scenarioTable
 
+import model.Scenario
+
 enum class ScenarioTableColumn(val label: String) {
     FEATURE("Feature"),
     FEATURE_TAGS("Feature Tags"),
@@ -11,6 +13,7 @@ enum class ScenarioTableColumn(val label: String) {
 }
 
 data class ScenarioTableRow(
+    val scenario: Scenario,
     val featureName: String,
     val featureTags: String,
     val scenarioName: String,
