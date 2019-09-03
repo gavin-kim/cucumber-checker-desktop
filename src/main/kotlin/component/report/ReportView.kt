@@ -1,6 +1,5 @@
 package component.report
 
-import component.reportFilter.ReportFilterView
 import component.scenarioDetail.ScenarioDetailView
 import component.scenarioTable.ScenarioTableView
 import tornadofx.MaskPane
@@ -16,9 +15,12 @@ class ReportView : View("ReportView") {
     private val overlayContainer = stackpane { add(MaskPane()) }
 
     override val root = vbox(2) {
-        add(ReportFilterView::class)
-        add(ScenarioTableView::class)
-        add(ScenarioDetailView::class)
+        add(ScenarioTableView::class) {
+            this.root.prefHeightProperty().bind(this@vbox.heightProperty().multiply(0.6))
+        }
+        add(ScenarioDetailView::class) {
+            this.root.prefHeightProperty().bind(this@vbox.heightProperty().multiply(0.4))
+        }
 
         controller.displayOverlayProperty.addListener { _, _, display ->
             if (display) {

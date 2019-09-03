@@ -1,6 +1,6 @@
 package component.scenarioDetail
 
-import model.Step
+import model.cucumber.Step
 
 enum class ScenarioDetailGroup(val text: String) {
     BEFORE_HOOKS("Before Hooks"),

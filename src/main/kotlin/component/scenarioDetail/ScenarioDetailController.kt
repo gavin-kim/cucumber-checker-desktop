@@ -4,8 +4,8 @@ import event.ClearScenarioDetails
 import event.DisplayScenarioDetails
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
-import model.Scenario
-import model.Step
+import model.cucumber.Step
+import model.property.ToggleProperty
 import tornadofx.Controller
 import tornadofx.getProperty
 import tornadofx.getValue
@@ -30,8 +30,16 @@ class ScenarioDetailController : Controller() {
     private val stepList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
     val stepListProperty = SimpleListProperty(stepList)
 
-    private var updated: Boolean by property(true)
-    val updatedProperty = getProperty(ScenarioDetailController::updated)
+    private var featureTags: String by property()
+    val featureTagsProperty = getProperty(ScenarioDetailController::featureTags)
+
+    private var scenarioTags: String by property()
+    val scenarioTagsProperty = getProperty(ScenarioDetailController::scenarioTags)
+
+    private var errorMessage: String by property()
+    val errorMessageProperty = getProperty(ScenarioDetailController::errorMessage)
+
+    val modelUpdatedProperty = ToggleProperty()
 
     init {
         scenarioGroupList.setAll(
@@ -42,31 +50,41 @@ class ScenarioDetailController : Controller() {
         )
 
         subscribe<DisplayScenarioDetails> {
-            updateScenario(it.scenario)
+            updateModel(it)
         }
 
         subscribe<ClearScenarioDetails> {
-            clearScenario()
+            clearModel()
         }
     }
 
-    private fun updateScenario(scenario: Scenario) {
-
+    private fun updateModel(model: DisplayScenarioDetails) {
+        val scenario = model.scenario
         val (beforeHooks, afterHooks) = scenario.hooks.partition { hook -> hook.keyword == Step.Keyword.BEFORE }
 
         beforeHookList.setAll(beforeHooks.map { hook -> buildScenarioDetailModel(hook) })
         afterHookList.setAll(afterHooks.map { hook -> buildScenarioDetailModel(hook) })
         backgroundStepList.setAll(scenario.backgroundSteps.map { step -> buildScenarioDetailModel(step) })
         stepList.setAll(scenario.steps.map { step -> buildScenarioDetailModel(step) })
-        updated = !updated
+
+        featureTags = model.featureTags.joinToString()
+        scenarioTags = model.scenarioTags.joinToString()
+        errorMessage = model.errorMessages.joinToString("\n")
+
+        modelUpdatedProperty.toggle()
     }
 
-    private fun clearScenario() {
+    private fun clearModel() {
         beforeHookList.clear()
         afterHookList.clear()
         backgroundStepList.clear()
         stepList.clear()
-        updated = !updated
+
+        featureTags = ""
+        scenarioTags = ""
+        errorMessage = ""
+
+        modelUpdatedProperty.toggle()
     }
 
     private fun buildScenarioDetailModel(step: Step): ScenarioDetail {

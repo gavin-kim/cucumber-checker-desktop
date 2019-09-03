@@ -1,4 +1,4 @@
-package model
+package model.cucumber
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 
@@ -12,7 +12,9 @@ data class Build(
     val finished: Boolean,
     val hasReport: Boolean,
     val userId: String,
-    val userName: String
+    val userName: String,
+    val revision: Int,
+    val parameters: Map<String, String>
 ) {
     @JsonIgnore
     val text =

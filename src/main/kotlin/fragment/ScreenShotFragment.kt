@@ -1,7 +1,7 @@
 package fragment
 
 import javafx.scene.image.Image
-import model.Report
+import model.cucumber.Report
 import tornadofx.Fragment
 import tornadofx.fitToParentSize
 import tornadofx.imageview

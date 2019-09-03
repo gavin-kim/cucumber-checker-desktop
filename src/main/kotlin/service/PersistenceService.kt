@@ -2,7 +2,7 @@ package service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import model.Report
+import model.cucumber.Report
 import mu.KotlinLogging
 import tornadofx.Controller
 import java.io.File

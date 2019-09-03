@@ -23,8 +23,7 @@ class ReportFilterController : Controller() {
 
     private fun getReportFilterData(): ReportFilterData {
         return ReportFilterData(
-            showUnstableTestsProperty.get(),
-            selectedDisplayColumnsProperty.get()
+            showUnstableTestsProperty.get()
         )
     }
 

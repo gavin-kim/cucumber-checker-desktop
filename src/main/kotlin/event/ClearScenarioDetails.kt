@@ -1,5 +1,6 @@
 package event
 
-import tornadofx.*
+import tornadofx.EventBus
+import tornadofx.FXEvent
 
 class ClearScenarioDetails : FXEvent(EventBus.RunOn.ApplicationThread)

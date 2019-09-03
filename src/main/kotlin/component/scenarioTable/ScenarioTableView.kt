@@ -1,9 +1,9 @@
 package component.scenarioTable
 
-import event.RequestReportFilterData
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
+import tornadofx.SmartResize
 import tornadofx.View
 import tornadofx.bindSelected
 import tornadofx.box
@@ -21,10 +21,10 @@ class ScenarioTableView : View("ScenarioTableView") {
 
     private val controller: ScenarioTableController by inject()
 
-    private val failedImagePath = app.config.string("scenario.table.failed.image.path")
-    private val unstableImagePath = app.config.string("scenario.table.unstable.image.path")
+    private val imageFailed = app.config.string("scenario.table.image.failed")
+    private val imageUnstable = app.config.string("scenario.table.image.unstable")
 
-    override val root = tableview(controller.scenarioRowTableRowListProperty) {
+    override val root = tableview<ScenarioTableRow> {
         bindSelected(controller.selectedReportRowProperty)
         selectionModel.isCellSelectionEnabled = true
 
@@ -37,21 +37,9 @@ class ScenarioTableView : View("ScenarioTableView") {
                 graphic = imageview(getStatusIconImage(it))
             }
         }
-        readonlyColumn(ScenarioTableColumn.FEATURE.label, ScenarioTableRow::featureName) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.FEATURE, visibleProperty())
-        }
-        readonlyColumn(ScenarioTableColumn.FEATURE_TAGS.label, ScenarioTableRow::featureTags) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.FEATURE_TAGS, visibleProperty())
-        }
-        readonlyColumn(ScenarioTableColumn.SCENARIO.label, ScenarioTableRow::scenarioName) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.SCENARIO, visibleProperty())
-        }
-        readonlyColumn(ScenarioTableColumn.SCENARIO_TAGS.label, ScenarioTableRow::scenarioTags) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.SCENARIO_TAGS, visibleProperty())
-        }
+        readonlyColumn(ScenarioTableColumn.FEATURE.label, ScenarioTableRow::featureName)
+        readonlyColumn(ScenarioTableColumn.SCENARIO.label, ScenarioTableRow::scenarioName)
         readonlyColumn(ScenarioTableColumn.SCREENSHOTS.label, ScenarioTableRow::screenShotLinks) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.SCREENSHOTS, visibleProperty())
-
             cellFormat {
                 graphic = hbox {
                     it.mapIndexed { index, link ->
@@ -68,12 +56,7 @@ class ScenarioTableView : View("ScenarioTableView") {
             }
 
         }
-        readonlyColumn(ScenarioTableColumn.FAILED_SPOT.label, ScenarioTableRow::failedSpot) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_SPOT, visibleProperty())
-        }
-        readonlyColumn(ScenarioTableColumn.FAILED_STEP.label, ScenarioTableRow::failedStep) {
-            controller.setColumnVisibleProperty(ScenarioTableColumn.FAILED_STEP, visibleProperty())
-        }
+        readonlyColumn(ScenarioTableColumn.FAILED_STEP.label, ScenarioTableRow::failedStep)
 
         style {
             fontSize = 12.px
@@ -81,14 +64,15 @@ class ScenarioTableView : View("ScenarioTableView") {
         }
 
         onKeyPressed = controller.onKeyPressed
+        columnResizePolicy = SmartResize.POLICY
     }
 
     private fun getStatusIconImage(unstable: Boolean): Image {
-        return Image(if (unstable) unstableImagePath else failedImagePath, 16.0, 16.0, true, true)
+        return Image(if (unstable) imageUnstable else imageFailed, 16.0, 16.0, true, true)
     }
 
     override fun onDock() {
         root.fitToParentSize()
-        fire(RequestReportFilterData())
+        controller.filteredScenarioTableRowList.bindTo(root)
     }
 }

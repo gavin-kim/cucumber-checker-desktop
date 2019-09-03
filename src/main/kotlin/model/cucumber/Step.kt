@@ -1,4 +1,4 @@
-package model
+package model.cucumber
 
 data class Step(
     val type: Type,

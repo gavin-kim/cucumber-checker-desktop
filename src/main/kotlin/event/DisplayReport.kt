@@ -1,6 +1,6 @@
 package event
 
-import model.Report
+import model.cucumber.Report
 import tornadofx.EventBus
 import tornadofx.FXEvent
 

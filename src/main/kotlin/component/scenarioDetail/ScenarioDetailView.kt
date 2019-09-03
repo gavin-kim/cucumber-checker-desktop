@@ -1,10 +1,32 @@
 package component.scenarioDetail
 
+import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.control.TreeItem
 import javafx.scene.paint.Color
-import model.Step
-import tornadofx.*
+import model.cucumber.Step
+import tornadofx.View
+import tornadofx.c
+import tornadofx.cellFormat
+import tornadofx.div
+import tornadofx.field
+import tornadofx.fieldset
+import tornadofx.fitToParentHeight
+import tornadofx.fitToParentSize
+import tornadofx.form
+import tornadofx.gridpane
+import tornadofx.hbox
+import tornadofx.label
+import tornadofx.onChange
+import tornadofx.paddingAll
+import tornadofx.populate
+import tornadofx.row
+import tornadofx.stackpane
+import tornadofx.style
+import tornadofx.textarea
+import tornadofx.textfield
+import tornadofx.treeview
+import tornadofx.vbox
 
 class ScenarioDetailView : View("ScenarioDetailView") {
 
@@ -18,71 +40,106 @@ class ScenarioDetailView : View("ScenarioDetailView") {
     private val stepColorDefault = app.config.string("scenario.detail.step.color.default", "#D3D3D3")
 
 
-    override val root = treeview<Any> {
-        root = TreeItem("Details")
+    override val root = hbox(2) {
+        style {
+            fontFamily = "Consolas"
+        }
 
-        cellFormat {
-            graphic = vbox(2) {
-                val text = when (it) {
-                    is String -> it
-                    is ScenarioDetail -> "${it.keyword} ${it.name}"
-                    is ScenarioDetailGroup -> it.text
-                    else -> throw IllegalArgumentException()
-                }
+        treeview<Any> {
+            this.root = TreeItem("Details")
 
-                stackpane {
-                    label(text)
+            prefWidthProperty().bind(this@hbox.widthProperty().div(2))
 
-                    style {
-                        alignment = Pos.CENTER_LEFT
+            cellFormat {
+                graphic = vbox(2) {
+                    val text = when (it) {
+                        is String -> it
+                        is ScenarioDetail -> "${it.keyword} ${it.name}"
+                        is ScenarioDetailGroup -> it.text
+                        else -> throw IllegalArgumentException()
                     }
-                }
 
-                if (it is ScenarioDetail && it.arguments.isNotEmpty()) {
-                    gridpane {
-                        it.arguments.forEach { arguments ->
-                            row {
-                                arguments.forEach { argument ->
-                                    add(label(argument) {
-                                        style {
-                                            paddingAll = 3
-                                        }
-                                    })
-                                }
-                            }
-                        }
+                    stackpane {
+                        label(text)
 
                         style {
-                            gridLinesVisible = true
                             alignment = Pos.CENTER_LEFT
                         }
                     }
+
+                    if (it is ScenarioDetail && it.arguments.isNotEmpty()) {
+                        gridpane {
+                            it.arguments.forEach { arguments ->
+                                row {
+                                    arguments.forEach { argument ->
+                                        add(label(argument) {
+                                            style {
+                                                paddingAll = 3
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+
+                            style {
+                                gridLinesVisible = true
+                                alignment = Pos.CENTER_LEFT
+                            }
+                        }
+                    }
+                }
+
+                style {
+                    if (it is ScenarioDetail) {
+                        backgroundColor += getBackGroundColor(it.result)
+                    }
                 }
             }
 
-            style {
-                fontFamily = "Consolas"
-                if (it is ScenarioDetail) {
-                    backgroundColor += getBackGroundColor(it.result)
+            populate { parent ->
+                when {
+                    parent == root -> controller.scenarioGroupListProperty
+                    parent.value == ScenarioDetailGroup.BEFORE_HOOKS -> controller.beforeHookListProperty
+                    parent.value == ScenarioDetailGroup.BACKGROUND_STEPS -> controller.backgroundStepListProperty
+                    parent.value == ScenarioDetailGroup.STEPS -> controller.stepListProperty
+                    parent.value == ScenarioDetailGroup.AFTER_HOOKS -> controller.afterHookListProperty
+                    else -> null
                 }
             }
-        }
 
-        populate { parent ->
-            when {
-                parent == root -> controller.scenarioGroupListProperty
-                parent.value == ScenarioDetailGroup.BEFORE_HOOKS -> controller.beforeHookListProperty
-                parent.value == ScenarioDetailGroup.BACKGROUND_STEPS -> controller.backgroundStepListProperty
-                parent.value == ScenarioDetailGroup.STEPS -> controller.stepListProperty
-                parent.value == ScenarioDetailGroup.AFTER_HOOKS -> controller.afterHookListProperty
-                else -> null
+            controller.modelUpdatedProperty.onChange {
+                expandFailedStepGroups(root)
+                scrollTo(getFirstFailedStepIndex(root))
             }
         }
 
-        controller.updatedProperty.addListener { _, _, _ ->
-            expandFailedStepGroups(root)
-            scrollTo(getFirstFailedStepIndex(root))
+        form {
+            prefWidthProperty().bind(this@hbox.widthProperty().div(2))
+
+            fieldset(labelPosition = Orientation.VERTICAL) {
+                field("Feature Tags") {
+                    textfield(controller.featureTagsProperty) {
+                        isEditable = false
+                    }
+                }
+
+                field("Scenario Tags") {
+                    textfield(controller.scenarioTagsProperty) {
+                        isEditable = false
+                    }
+                }
+
+                field("Messages") {
+                    textarea(controller.errorMessageProperty) {
+                        isEditable = false
+                        fitToParentHeight()
+                    }
+                    fitToParentHeight()
+                }
+                fitToParentHeight()
+            }
         }
+
     }
 
     private fun expandFailedStepGroups(root: TreeItem<Any>) {

@@ -1,4 +1,4 @@
-package model
+package model.cucumber
 
 data class Report(
     val build: Build,

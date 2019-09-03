@@ -1,12 +1,10 @@
 package component.scenarioTable
 
-import model.Scenario
+import model.cucumber.Scenario
 
 enum class ScenarioTableColumn(val label: String) {
     FEATURE("Feature"),
-    FEATURE_TAGS("Feature Tags"),
     SCENARIO("Scenario"),
-    SCENARIO_TAGS("Scenario Tags"),
     SCREENSHOTS("Screenshots"),
     FAILED_SPOT("Failed Spot"),
     FAILED_STEP("Failed Step")
@@ -15,11 +13,11 @@ enum class ScenarioTableColumn(val label: String) {
 data class ScenarioTableRow(
     val scenario: Scenario,
     val featureName: String,
-    val featureTags: String,
+    val featureTags: List<String>,
     val scenarioName: String,
-    val scenarioTags: String,
+    val scenarioTags: List<String>,
     val screenShotLinks: List<String>,
-    val failedSpot: String,
     val failedStep: String,
+    val messages: List<String>,
     val unstable: Boolean
 )
