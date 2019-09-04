@@ -1,4 +1,4 @@
-package component.scenarioDetail
+package component.scenarioDetails
 
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
@@ -28,9 +28,9 @@ import tornadofx.textfield
 import tornadofx.treeview
 import tornadofx.vbox
 
-class ScenarioDetailView : View("ScenarioDetailView") {
+class ScenarioDetailsView : View("ScenarioDetailsView") {
 
-    private val controller: ScenarioDetailController by inject()
+    private val controller: ScenarioDetailsController by inject()
 
     private val stepColorPassed = app.config.string("scenario.detail.step.color.passed", "#89DE9C")
     private val stepColorFailed = app.config.string("scenario.detail.step.color.failed", "#F8928D")
@@ -54,8 +54,8 @@ class ScenarioDetailView : View("ScenarioDetailView") {
                 graphic = vbox(2) {
                     val text = when (it) {
                         is String -> it
-                        is ScenarioDetail -> "${it.keyword} ${it.name}"
-                        is ScenarioDetailGroup -> it.text
+                        is ScenarioDetails -> "${it.keyword} ${it.name}"
+                        is ScenarioDetailsGroup -> it.text
                         else -> throw IllegalArgumentException()
                     }
 
@@ -67,7 +67,7 @@ class ScenarioDetailView : View("ScenarioDetailView") {
                         }
                     }
 
-                    if (it is ScenarioDetail && it.arguments.isNotEmpty()) {
+                    if (it is ScenarioDetails && it.arguments.isNotEmpty()) {
                         gridpane {
                             it.arguments.forEach { arguments ->
                                 row {
@@ -90,7 +90,7 @@ class ScenarioDetailView : View("ScenarioDetailView") {
                 }
 
                 style {
-                    if (it is ScenarioDetail) {
+                    if (it is ScenarioDetails) {
                         backgroundColor += getBackGroundColor(it.result)
                     }
                 }
@@ -99,10 +99,10 @@ class ScenarioDetailView : View("ScenarioDetailView") {
             populate { parent ->
                 when {
                     parent == root -> controller.scenarioGroupListProperty
-                    parent.value == ScenarioDetailGroup.BEFORE_HOOKS -> controller.beforeHookListProperty
-                    parent.value == ScenarioDetailGroup.BACKGROUND_STEPS -> controller.backgroundStepListProperty
-                    parent.value == ScenarioDetailGroup.STEPS -> controller.stepListProperty
-                    parent.value == ScenarioDetailGroup.AFTER_HOOKS -> controller.afterHookListProperty
+                    parent.value == ScenarioDetailsGroup.BEFORE_HOOKS -> controller.beforeHookListProperty
+                    parent.value == ScenarioDetailsGroup.BACKGROUND_STEPS -> controller.backgroundStepListProperty
+                    parent.value == ScenarioDetailsGroup.STEPS -> controller.stepListProperty
+                    parent.value == ScenarioDetailsGroup.AFTER_HOOKS -> controller.afterHookListProperty
                     else -> null
                 }
             }
@@ -145,7 +145,7 @@ class ScenarioDetailView : View("ScenarioDetailView") {
     private fun expandFailedStepGroups(root: TreeItem<Any>) {
         root.isExpanded = true
         root.children.forEach { stepGroupTreeItem ->
-            if (stepGroupTreeItem.children.any { (it.value as ScenarioDetail).result == Step.Result.FAILED }) {
+            if (stepGroupTreeItem.children.any { (it.value as ScenarioDetails).result == Step.Result.FAILED }) {
                 stepGroupTreeItem.isExpanded = true
             }
         }
@@ -154,7 +154,7 @@ class ScenarioDetailView : View("ScenarioDetailView") {
     private fun getFirstFailedStepIndex(root: TreeItem<Any>): Int {
         root.children.forEachIndexed { groupIndex, group ->
             group.children.forEachIndexed {  stepIndex, step ->
-                if ((step.value as ScenarioDetail).result == Step.Result.FAILED) {
+                if ((step.value as ScenarioDetails).result == Step.Result.FAILED) {
                     return 1 + groupIndex + 1 + stepIndex
                 }
             }

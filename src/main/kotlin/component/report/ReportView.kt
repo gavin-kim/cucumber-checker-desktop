@@ -1,6 +1,6 @@
 package component.report
 
-import component.scenarioDetail.ScenarioDetailView
+import component.scenarioDetails.ScenarioDetailsView
 import component.scenarioTable.ScenarioTableView
 import tornadofx.MaskPane
 import tornadofx.View
@@ -18,7 +18,7 @@ class ReportView : View("ReportView") {
         add(ScenarioTableView::class) {
             this.root.prefHeightProperty().bind(this@vbox.heightProperty().multiply(0.6))
         }
-        add(ScenarioDetailView::class) {
+        add(ScenarioDetailsView::class) {
             this.root.prefHeightProperty().bind(this@vbox.heightProperty().multiply(0.4))
         }
 

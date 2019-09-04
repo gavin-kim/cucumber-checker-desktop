@@ -1,8 +1,7 @@
 package component.scenarioTable
 
-import component.reportFilter.ReportFilterData
 import event.ClearScenarioDetails
-import event.DispatchReportFilterData
+import event.DispatchScenarioTableFilter
 import event.DisplayReport
 import event.DisplayScenarioDetails
 import event.HideReportOverlay
@@ -75,8 +74,8 @@ class ScenarioTableController: Controller() {
             fire(HideReportOverlay())
         }
 
-        subscribe<DispatchReportFilterData> {
-            updateFilteredScenarioTableRowList(it.reportFilterData)
+        subscribe<DispatchScenarioTableFilter> {
+            updateFilteredScenarioTableRowList(it.scenarioTableFilter)
         }
 
         addSelectedFeaturePropertyListener()
@@ -117,7 +116,7 @@ class ScenarioTableController: Controller() {
             .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
 
         return when {
-            failedBeforeHooks.isNotEmpty() -> failedAfterHooks.first()
+            failedBeforeHooks.isNotEmpty() -> failedBeforeHooks.first()
             failedBackgroundSteps.isNotEmpty() -> failedBackgroundSteps.first()
             failedSteps.isNotEmpty() -> failedSteps.first()
             failedAfterHooks.isNotEmpty() -> failedAfterHooks.first()
@@ -142,9 +141,9 @@ class ScenarioTableController: Controller() {
         }
     }
 
-    private fun updateFilteredScenarioTableRowList(reportFilterData: ReportFilterData) {
+    private fun updateFilteredScenarioTableRowList(scenarioTableFilter: ScenarioTableFilter) {
         filteredScenarioTableRowList.predicate = {
-            if (reportFilterData.showUnstableTests) true
+            if (scenarioTableFilter.showUnstableTests) true
             else it.unstable.not()
         }
     }

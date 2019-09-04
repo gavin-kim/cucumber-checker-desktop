@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val kotlinVersion = "1.3.40"
+val kotlinVersion = "1.3.50"
 
 group = "com.gavin"
 version = "0.0.1"
@@ -9,12 +9,13 @@ plugins {
     `build-scan`
     `java-library`
 
-    kotlin("jvm") version "1.3.31"
+    kotlin("jvm") version "1.3.50"
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8", kotlinVersion))
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0")
     implementation("org.apache.httpcomponents:httpclient:4.5.1")
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("org.tmatesoft.svnkit:svnkit:1.10.1")
@@ -39,18 +40,5 @@ java {
 tasks.withType<KotlinCompile>().all {
     kotlinOptions {
         jvmTarget = "1.8"
-    }
-}
-
-val prop1: String by project
-val prop2: String by project
-val prop3: String by project
-
-tasks.register("printProps") {
-    doLast {
-        println(prop1)
-        println(prop2)
-        println(prop3)
-        println(System.getProperty("system"))
     }
 }

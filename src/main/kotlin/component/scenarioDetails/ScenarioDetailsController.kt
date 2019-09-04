@@ -1,4 +1,4 @@
-package component.scenarioDetail
+package component.scenarioDetails
 
 import event.ClearScenarioDetails
 import event.DisplayScenarioDetails
@@ -13,40 +13,41 @@ import tornadofx.listProperty
 import tornadofx.observableListOf
 import tornadofx.property
 
-class ScenarioDetailController : Controller() {
 
-    private val scenarioGroupList: ObservableList<ScenarioDetailGroup> by listProperty(observableListOf())
+class ScenarioDetailsController : Controller() {
+
+    private val scenarioGroupList: ObservableList<ScenarioDetailsGroup> by listProperty(observableListOf())
     val scenarioGroupListProperty = SimpleListProperty(scenarioGroupList)
 
-    private val beforeHookList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
+    private val beforeHookList: ObservableList<ScenarioDetails> by listProperty(observableListOf())
     val beforeHookListProperty = SimpleListProperty(beforeHookList)
 
-    private val afterHookList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
+    private val afterHookList: ObservableList<ScenarioDetails> by listProperty(observableListOf())
     val afterHookListProperty = SimpleListProperty(afterHookList)
 
-    private val backgroundStepList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
+    private val backgroundStepList: ObservableList<ScenarioDetails> by listProperty(observableListOf())
     val backgroundStepListProperty = SimpleListProperty(backgroundStepList)
 
-    private val stepList: ObservableList<ScenarioDetail> by listProperty(observableListOf())
+    private val stepList: ObservableList<ScenarioDetails> by listProperty(observableListOf())
     val stepListProperty = SimpleListProperty(stepList)
 
     private var featureTags: String by property()
-    val featureTagsProperty = getProperty(ScenarioDetailController::featureTags)
+    val featureTagsProperty = getProperty(ScenarioDetailsController::featureTags)
 
     private var scenarioTags: String by property()
-    val scenarioTagsProperty = getProperty(ScenarioDetailController::scenarioTags)
+    val scenarioTagsProperty = getProperty(ScenarioDetailsController::scenarioTags)
 
     private var errorMessage: String by property()
-    val errorMessageProperty = getProperty(ScenarioDetailController::errorMessage)
+    val errorMessageProperty = getProperty(ScenarioDetailsController::errorMessage)
 
     val modelUpdatedProperty = ToggleProperty()
 
     init {
         scenarioGroupList.setAll(
-            ScenarioDetailGroup.BEFORE_HOOKS,
-            ScenarioDetailGroup.BACKGROUND_STEPS,
-            ScenarioDetailGroup.STEPS,
-            ScenarioDetailGroup.AFTER_HOOKS
+            ScenarioDetailsGroup.BEFORE_HOOKS,
+            ScenarioDetailsGroup.BACKGROUND_STEPS,
+            ScenarioDetailsGroup.STEPS,
+            ScenarioDetailsGroup.AFTER_HOOKS
         )
 
         subscribe<DisplayScenarioDetails> {
@@ -87,8 +88,8 @@ class ScenarioDetailController : Controller() {
         modelUpdatedProperty.toggle()
     }
 
-    private fun buildScenarioDetailModel(step: Step): ScenarioDetail {
-        return ScenarioDetail(
+    private fun buildScenarioDetailModel(step: Step): ScenarioDetails {
+        return ScenarioDetails(
             step.keyword.text,
             step.name,
             step.duration,
