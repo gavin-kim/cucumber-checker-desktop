@@ -5,9 +5,8 @@ import tornadofx.Fragment
 import tornadofx.stackpane
 import tornadofx.usePrefSize
 
-class BuildLoaderFragment : Fragment() {
+class BuildLoaderFragment : Fragment("Build Loader") {
     override val root = stackpane {
-        title = "Build Loader"
 
         usePrefSize = true
         prefWidth = 800.0

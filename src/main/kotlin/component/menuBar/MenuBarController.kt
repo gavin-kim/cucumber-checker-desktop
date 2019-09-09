@@ -4,6 +4,8 @@ import component.scenarioTable.ScenarioTableFilter
 import event.DispatchScenarioTableFilter
 import event.DisplayReport
 import event.ReportLoaded
+import fragment.BuildLoaderFragment
+import fragment.svnHistory.SvnHistoryFragment
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import model.cucumber.Report
@@ -33,6 +35,10 @@ class MenuBarController : Controller() {
         showUnstableProperty.onChange { fire(DispatchScenarioTableFilter(ScenarioTableFilter(showUnstable))) }
     }
 
+    val onBuildLoaderButtonClicked = EventHandler<ActionEvent> {
+        find<BuildLoaderFragment>().openModal()
+    }
+
     val onLoadReportButtonClicked = EventHandler<ActionEvent> {
         val directory = chooseDirectory("Load Report")
 
@@ -51,6 +57,10 @@ class MenuBarController : Controller() {
     }
 
     val onCompareButtonClicked = EventHandler<ActionEvent> {
-
+        if (::loadedReport.isInitialized) {
+            find<SvnHistoryFragment>(
+                "build" to loadedReport.build
+            ).openModal()
+        }
     }
 }

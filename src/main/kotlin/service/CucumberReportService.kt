@@ -1,5 +1,6 @@
 package service
 
+import model.cucumber.BriefReport
 import model.cucumber.Build
 import model.cucumber.Feature
 import model.cucumber.Report
@@ -20,7 +21,7 @@ private const val SCENARIO = "Scenario"
 private const val BACKGROUND = "Background"
 private const val CONSOLE_TEXT = "consoleText"
 private const val XML_BUILD_SEARCH_QUERY = "xml?tree=builds[building,id,displayName,result,duration,timestamp,actions[causes[*],parameters[*]]]"
-private const val XML_FAILED_RESULT_QUERY = "xml?tree=suites[cases[className,name,status]]&xpath=/testResult/suite/case/status[contains(text(),'REGRESSION') or contains(text(),'FAILED')]/..&wrapper=failedResult"
+private const val XML_TEST_REPORT_FAILED_RESULT_QUERY = "xml?tree=suites[cases[className,name,status]]&xpath=/testResult/suite/case/status[contains(text(),'REGRESSION') or contains(text(),'FAILED')]/..&wrapper=failedResult"
 private const val XML_JOB_NAMES_QUERY = "xml?tree=jobs[name]"
 
 class CucumberReportService : Controller() {
@@ -118,7 +119,7 @@ class CucumberReportService : Controller() {
     }
 
     private fun getScenarioFailedCountMapByFeatureName(buildUrl: String): Map<String, Map<String, Int>> {
-        val url = "$buildUrl/$TEST_REPORT/api/$XML_FAILED_RESULT_QUERY"
+        val url = "$buildUrl/$TEST_REPORT/api/$XML_TEST_REPORT_FAILED_RESULT_QUERY"
 
         val xml = Jsoup.connect(url).maxBodySize(0).get()
 
@@ -208,21 +209,23 @@ class CucumberReportService : Controller() {
     }
 
     private fun getHooks(element: Element): List<Step> {
-        return element.select("div.hook").map { hook ->
-            val brief = hook.selectFirst("div.brief")
+        return element.select("div.hook").map { hook -> getHook(hook) }
+    }
 
-            val keyword = when (brief.select("span.keyword").text().trim()) {
-                Step.Keyword.BEFORE.text -> Step.Keyword.BEFORE
-                Step.Keyword.AFTER.text -> Step.Keyword.AFTER
-                else -> Step.Keyword.UNKNOWN
-            }
+    private fun getHook(hook: Element): Step {
+        val brief = hook.selectFirst("div.brief")
 
-            val name = brief.select("span.name").text()
-            val duration = brief.select("span.duration").text()
-            val result = getResult(brief)
-
-            Step(Step.Type.HOOK, keyword, name, duration, result)
+        val keyword = when (brief.select("span.keyword").text().trim()) {
+            Step.Keyword.BEFORE.text -> Step.Keyword.BEFORE
+            Step.Keyword.AFTER.text -> Step.Keyword.AFTER
+            else -> Step.Keyword.UNKNOWN
         }
+
+        val name = brief.select("span.name").text()
+        val duration = brief.select("span.duration").text()
+        val result = getResult(brief)
+
+        return Step(Step.Type.HOOK, keyword, name, duration, result)
     }
 
     private fun getBackgroundSteps(element: Element): List<Step> {
@@ -236,25 +239,27 @@ class CucumberReportService : Controller() {
     }
 
     private fun getSteps(element: Element): List<Step> {
-        return element.select("div.step").map { step ->
-            val brief = step.selectFirst("div.brief")
+        return element.select("div.step").map { step -> getStep(step) }
+    }
 
-            val keyword = when (brief.select("span.keyword").text().trim()) {
-                Step.Keyword.GIVEN.text -> Step.Keyword.GIVEN
-                Step.Keyword.WHEN.text -> Step.Keyword.WHEN
-                Step.Keyword.AND.text -> Step.Keyword.AND
-                Step.Keyword.THEN.text -> Step.Keyword.THEN
-                else -> Step.Keyword.UNKNOWN
-            }
-            val name = brief.select("span.name").text()
-            val duration = brief.select("span.duration").text()
-            val result = getResult(brief)
+    private fun getStep(step: Element): Step {
+        val brief = step.selectFirst("div.brief")
 
-            val arguments = getStepArguments(step)
-            val messages = if (result == Step.Result.FAILED) getStepMessages(step) else emptyList()
-
-            Step(Step.Type.STEP, keyword, name, duration, result, messages, arguments)
+        val keyword = when (brief.select("span.keyword").text().trim()) {
+            Step.Keyword.GIVEN.text -> Step.Keyword.GIVEN
+            Step.Keyword.WHEN.text -> Step.Keyword.WHEN
+            Step.Keyword.AND.text -> Step.Keyword.AND
+            Step.Keyword.THEN.text -> Step.Keyword.THEN
+            else -> Step.Keyword.UNKNOWN
         }
+        val name = brief.select("span.name").text()
+        val duration = brief.select("span.duration").text()
+        val result = getResult(brief)
+
+        val arguments = getStepArguments(step)
+        val messages = if (result == Step.Result.FAILED) getStepMessages(step) else emptyList()
+
+        return Step(Step.Type.STEP, keyword, name, duration, result, messages, arguments)
     }
 
     private fun getResult(brief: Element): Step.Result {
@@ -276,13 +281,27 @@ class CucumberReportService : Controller() {
     }
 
     fun getCucumberJobs(): List<String> {
-        val url = "$serverUrl/view/All/api/$XML_JOB_NAMES_QUERY"
+        val url = "$serverUrl/api/$XML_JOB_NAMES_QUERY"
 
         val xml = Jsoup.connect(url).maxBodySize(0).get()
 
         return xml.select("job")
             .map { it.select("name").text() }
             .filter { it.contains("cucumber", true) }
+    }
+
+    fun getBriefReport(build: Build): BriefReport {
+        val buildUrl = "$serverUrl/job/${build.job}/${build.id}"
+
+        val failedScenariosByFeature = getScenarioFailedCountMapByFeatureName(buildUrl)
+            .mapValues { it.value.filter { (_, count) -> count > 1 }.keys }
+
+        val reportUrl = "$buildUrl/$CUCUMBER_HTML_REPORTS"
+
+        val featureScenarioNames = failedScenariosByFeature
+            .flatMap { (feature, failedScenarios) -> failedScenarios.map { feature to it } }
+
+        return BriefReport(build, reportUrl, featureScenarioNames)
     }
 }
 

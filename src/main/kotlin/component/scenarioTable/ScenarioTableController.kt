@@ -106,14 +106,14 @@ class ScenarioTableController: Controller() {
     private fun getFirstFailedStep(scenario: Scenario): Step {
 
         val (failedBeforeHooks, failedAfterHooks) = scenario.hooks
-            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
+            .filter { it.canCauseFailure }
             .partition { it.keyword == Step.Keyword.BEFORE }
 
         val failedBackgroundSteps = scenario.backgroundSteps
-            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
+            .filter { it.canCauseFailure }
 
         val failedSteps = scenario.steps
-            .filter { it.result == Step.Result.FAILED || it.result == Step.Result.UNDEFINED }
+            .filter { it.canCauseFailure }
 
         return when {
             failedBeforeHooks.isNotEmpty() -> failedBeforeHooks.first()

@@ -9,6 +9,8 @@ data class Step(
     val messages: List<String> = emptyList(),
     val arguments: List<List<String>> = emptyList()
 ) {
+    val canCauseFailure = result == Result.FAILED || result == Result.PENDING || result == Result.UNDEFINED
+
     enum class Type {
         HOOK,
         STEP

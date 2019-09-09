@@ -10,7 +10,6 @@ import javafx.collections.ObservableMap
 import javafx.collections.transformation.FilteredList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
-import javafx.scene.control.Button
 import javafx.scene.control.ComboBox
 import model.cucumber.Build
 import model.property.ToggleProperty
@@ -50,7 +49,7 @@ class BuildLoaderController: Controller() {
     private var buildFilterValue: String by property()
     val buildFilterValueProperty = getProperty(BuildLoaderController::buildFilterValue)
 
-    private var selectedBuild: Build by property<Build>()
+    private var selectedBuild: Build by property()
     val selectedBuildProperty = getProperty(BuildLoaderController::selectedBuild)
 
     private val buildList: ObservableList<Build> by listProperty(observableListOf())

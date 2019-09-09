@@ -23,6 +23,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:1.6.24")
     implementation("org.slf4j:slf4j-simple:1.7.26")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7")
+    implementation("com.offbytwo.jenkins:jenkins-client:0.3.8")
 
     // Use JUnit test framework
     testImplementation(kotlin("test", kotlinVersion))

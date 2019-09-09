@@ -1,6 +1,7 @@
 package component.menuBar
 
 import fragment.BuildLoaderFragment
+import fragment.svnHistory.SvnHistoryFragment
 import javafx.geometry.Pos
 import javafx.scene.image.Image
 import tornadofx.View
@@ -24,7 +25,7 @@ class MenuBarView : View("MenuBarView") {
     override val root = hbox(5, Pos.CENTER_LEFT) {
         button {
             graphic = imageview(Image(imageSearch, 24.0, 24.0, true, true))
-            action { find<BuildLoaderFragment>().openModal() }
+            onAction = controller.onBuildLoaderButtonClicked
         }
 
         button {
