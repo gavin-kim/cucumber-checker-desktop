@@ -14,7 +14,7 @@ import tornadofx.tableview
 import tornadofx.textfield
 import tornadofx.vbox
 
-class SvnHistoryFragment : Fragment("Co") {
+class SvnHistoryFragment : Fragment("SVN History") {
 
     val controller: SvnHistoryController by inject()
 
@@ -33,9 +33,9 @@ class SvnHistoryFragment : Fragment("Co") {
             bindSelected(property = controller.selectedSvnLogProperty)
 
             readonlyColumn("Revision", SvnLog::revision)
-            readonlyColumn("Revision", SvnLog::author)
-            readonlyColumn("Revision", SvnLog::date)
-            readonlyColumn("Revision", SvnLog::message)
+            readonlyColumn("Author", SvnLog::author)
+            readonlyColumn("Date", SvnLog::date)
+            readonlyColumn("Message", SvnLog::message)
 
             columnResizePolicy = SmartResize.POLICY
         }
